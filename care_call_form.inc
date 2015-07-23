@@ -27,6 +27,17 @@ function care_call_form($form, &$form_state) {
       '!documentation' => l(t('CARE API documentation'), $doc_root . '/WEBServicesSummary.htm'))),
     '#suffix' => '</p>');
 
+  if (isset($form_state['care_call_result'])) {
+    $form['care_call_result_display'] = array(
+      '#title' => t('CARE call result'),
+      '#type' => 'textarea',
+      '#rows' => 20,
+      '#attributes' => array(
+        'class' => array(
+          'carexmlresult')),
+      '#value' => $form_state['care_call_result']);
+  }
+
   $form['method'] = array(
     '#title' => t('Call Method'),
     '#type' => 'radios',
@@ -132,15 +143,6 @@ function care_call_form_submit($form, &$form_state) {
   }
   // Do the actual CARE method call.
   $result = care_call_method($method, $data, $typedata);
-  if ($result) {
-    drupal_set_message("<pre style=\"font-size: 11px; line-height: 1\">" . check_plain(print_r($result, TRUE)) . "</pre>");
-  }
-  elseif (get_class($result) == 'SimpleXMLElement') {
-    drupal_set_message('Call returned an empty result.', 'warning');
-  }
-  else {
-    drupal_set_message(t('CARE call error. Check !log if a result was expected.', array(
-      '!log' => l(t('Recent log entries'), 'admin/reports/dblog'))), 'error');
-  }
+  $form_state['care_call_result'] = _care_pretty_xml($result);
   $form_state['rebuild'] = TRUE;
 }

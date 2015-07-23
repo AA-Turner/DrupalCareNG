@@ -73,9 +73,9 @@ function care_call_method($methodname, $data = array(), $typedata = NULL) {
   static $client = NULL;
   // Don't wait for connection to time out again if it previously failed for this web request.
   static $connection_failed = FALSE;
-  $resultxml = new stdClass();
+  $resultxml = new SimpleXMLElement('<xml></xml>');
   if ($connection_failed) {
-    watchdog('care', t('Error: skipped CARE call as a previous call failed to connect'), array(), WATCHDOG_ERROR);
+    watchdog('care', 'Error: skipped CARE call as a previous call failed to connect', array(), WATCHDOG_ERROR);
     $resultxml->ErrorMessage = t('Error: skipped CARE call as a previous call failed to connect');
     return $resultxml;
   }
@@ -92,7 +92,7 @@ function care_call_method($methodname, $data = array(), $typedata = NULL) {
       $client = new SoapClient($service_address_url, $soap_options);
     }
     catch (Exception $e) {
-      watchdog('care', t('Error: !message'), array(
+      watchdog('care', 'Error: !message', array(
         '!message' => $e->getMessage()), WATCHDOG_ERROR);
       $connection_failed = TRUE;
       $resultxml->ErrorMessage = 'Failed to connect: ' . $e->getMessage();
@@ -161,9 +161,9 @@ function care_call_method($methodname, $data = array(), $typedata = NULL) {
     }
   }
   catch (Exception $e) {
-    watchdog('care', t('CARE Error: !message'), array(
+    watchdog('care', 'CARE Error: !message', array(
       '!message' => $e->getMessage()), WATCHDOG_ERROR);
-    $resultxml->ErrorMessage = 'Failed to call method: ' . $e->getMessage();
+    $resultxml->ErrorMessage = $e->getMessage();
     return $resultxml;
   }
 
@@ -188,10 +188,6 @@ function _care_pretty_xml($xml) {
     $domnode = $doc->importNode($domnode, TRUE);
     $domnode = $doc->appendChild($domnode);
     $xml = $doc->saveXML();
-    // Additional formatting for Aquia server log.
-    $xml = str_replace("\n", "", $xml);
-    $xml = str_replace("<", "{", $xml);
-    $xml = str_replace(">", "}", $xml);
     return $xml;
   }
   else {

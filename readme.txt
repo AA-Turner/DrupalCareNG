@@ -12,13 +12,13 @@ INSTALLATION & CONFIGURATION
 
 1) Install module and enable it.
 2) Configure the CARE WSDL, and documentation URLS, at:
-   Configuration > CARE settings
+   Configuration > Web services > CARE settings
 
 USAGE
 -----
 
 This module can run test CARE calls, via the administration menu item:
-  Configuration > CARE settings >  Test CARE call
+  Configuration > Web services > CARE settings >  Test CARE call
   
 Other than this the module does nothing on its own, but it may be required by other
 modules that need to use connections to a CARE server.
