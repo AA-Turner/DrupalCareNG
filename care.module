@@ -21,7 +21,8 @@ function care_permission() {
  */
 function care_menu() {
   $items['admin/config/services/care'] = array(
-    'title' => 'CARE settings',
+    'title' => 'CARE',
+    'description' => 'Configure and test the connection to CARE.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array(
       'care_settings_form'),
@@ -31,23 +32,19 @@ function care_menu() {
     'type' => MENU_NORMAL_ITEM);
   $items['admin/config/services/care/settings'] = array(
     'title' => 'CARE settings',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array(
-      'care_settings_form'),
-    'file' => 'care_settings_form.inc',
-    'access arguments' => array(
-      'administer care module'),
-    'type' => MENU_NORMAL_ITEM,
+    'description' => 'Configure the WDSL and documentation URLs for the CARE connection.',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
     'weight' => -1);
   $items['admin/config/services/care/call'] = array(
     'title' => 'Test CARE call',
+    'description' => 'Manually make test CARE calls.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array(
       'care_call_form'),
     'file' => 'care_call_form.inc',
     'access arguments' => array(
       'administer care module'),
-    'type' => MENU_NORMAL_ITEM,
+    'type' => MENU_LOCAL_TASK,
     'weight' => 90);
   return $items;
 }
