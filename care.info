@@ -1,9 +1,0 @@
-name = CARE
-description = "Module providing utility functions to call CARE web services."
-package = CARE
-core = "7.x"
-version = 7.x-1.x
-
-files[] = 'wrapper_functions.inc'
-
-stylesheets[all][] = care.css

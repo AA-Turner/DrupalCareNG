@@ -72,16 +72,16 @@ function care_call_method($methodname, $data = array(), $typedata = NULL) {
   static $connection_failed = FALSE;
   $resultxml = new SimpleXMLElement('<xml></xml>');
   if ($connection_failed) {
-    watchdog('care', 'Error: skipped CARE call as a previous call failed to connect', array(), WATCHDOG_ERROR);
+    Drupal::logger('care')->notice('Error: skipped CARE call as a previous call failed to connect', array(), WATCHDOG_ERROR);
     $resultxml->ErrorMessage = t('Error: skipped CARE call as a previous call failed to connect');
     return $resultxml;
   }
   // Create a SOAP client object for CARE if not already done.
   if (!$client) {
-    $service_address_url = variable_get('care_wsdl_url', 'http://127.0.0.1/careservices/dataaccess.asmx?WSDL');
+    $service_address_url = Drupal::config('care.settings')->get('care_wsdl_url');
     $soap_options = array(
       'wsdl_cache' => WSDL_CACHE_BOTH);
-    if (variable_get('care_log_results')) {
+    if (Drupal::config('care.settings')->get('care_log_results')) {
       $soap_options += array(
         'trace' => TRUE);
     }
@@ -89,7 +89,7 @@ function care_call_method($methodname, $data = array(), $typedata = NULL) {
       $client = new SoapClient($service_address_url, $soap_options);
     }
     catch (Exception $e) {
-      watchdog('care', 'Error: !message', array(
+      Drupal::logger('care')->notice('Error: !message', array(
         '!message' => $e->getMessage()), WATCHDOG_ERROR);
       $connection_failed = TRUE;
       $resultxml->ErrorMessage = 'Failed to connect: ' . $e->getMessage();
@@ -105,7 +105,7 @@ function care_call_method($methodname, $data = array(), $typedata = NULL) {
       $xml->addChild($parameter, $value);
     }
     else {
-      watchdog('care', 'Missing parameter name (PHP array key) for parameter for !method call. Data array: !data', array(
+      Drupal::logger('care')->notice('Missing parameter name (PHP array key) for parameter for !method call. Data array: !data', array(
         '!method' => $methodname,
         '!data' => print_r($data, TRUE)), WATCHDOG_WARNING);
     }
@@ -117,8 +117,8 @@ function care_call_method($methodname, $data = array(), $typedata = NULL) {
       // Call typed care method, two arguments.
       $typetype = key($typedata);
       $typename = $typedata[$typetype];
-      if (variable_get('care_log_calls')) {
-        watchdog('care', '@method (type: @type) call: @params', array(
+      if (Drupal::config('care.settings')->get('care_log_calls')) {
+        Drupal::logger('care')->notice('@method (type: @type) call: @params', array(
           '@method' => $methodname,
           '@type' => $typename,
           '@params' => _care_pretty_xml($xml)));
@@ -129,8 +129,8 @@ function care_call_method($methodname, $data = array(), $typedata = NULL) {
       // Return the result as a new SimpleXML element.
       $resultname = $methodname . 'Result';
       $resultxml = new SimpleXMLElement($result->$resultname);
-      if (variable_get('care_log_results')) {
-        watchdog('care', '@method (type: @type) <h2>Headers</h2><pre>@headers</pre><h2>Request</h2><pre>@request</pre><h2>Result</h2><pre>@result</pre>', array(
+      if (Drupal::config('care.settings')->get('care_log_results')) {
+        Drupal::logger('care')->notice('@method (type: @type) <h2>Headers</h2><pre>@headers</pre><h2>Request</h2><pre>@request</pre><h2>Result</h2><pre>@result</pre>', array(
           '@method' => $methodname,
           '@type' => $typename,
           '@headers' => $client->__getLastRequestHeaders(),
@@ -140,8 +140,8 @@ function care_call_method($methodname, $data = array(), $typedata = NULL) {
     }
     else {
       // Call simple care method, one argument.
-      if (variable_get('care_log_calls')) {
-        watchdog('care', '@method call: @params', array(
+      if (Drupal::config('care.settings')->get('care_log_calls')) {
+        Drupal::logger('care')->notice('@method call: @params', array(
           '@method' => $methodname,
           '@params' => _care_pretty_xml($xml)));
       }
@@ -150,15 +150,15 @@ function care_call_method($methodname, $data = array(), $typedata = NULL) {
       // Return the result as a new SimpleXML element.
       $resultname = $methodname . 'Result';
       $resultxml = new SimpleXMLElement($result->$resultname);
-      if (variable_get('care_log_results')) {
-        watchdog('care', '@method result: @result', array(
+      if (Drupal::config('care.settings')->get('care_log_results')) {
+        Drupal::logger('care')->notice('@method result: @result', array(
           '@method' => $methodname,
           '@result' => _care_pretty_xml($resultxml)));
       }
     }
   }
   catch (Exception $e) {
-    watchdog('care', 'CARE Error: !message', array(
+    Drupal::logger('care')->notice('CARE Error: !message', array(
       '!message' => $e->getMessage()), WATCHDOG_ERROR);
     $resultxml->ErrorMessage = $e->getMessage();
     return $resultxml;
@@ -166,7 +166,7 @@ function care_call_method($methodname, $data = array(), $typedata = NULL) {
 
   // Log any CARE error results.
   if (isset($resultxml->ErrorMessage)) {
-    watchdog('care', '@method Error: @message', array(
+    Drupal::logger('care')->notice('@method Error: @message', array(
       '@method' => $methodname,
       '@message' => (string)$resultxml->ErrorMessage), WATCHDOG_ERROR);
   }

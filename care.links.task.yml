@@ -1,0 +1,4 @@
+care.settings:
+  title: CARE settings
+  base_route: care.settings
+  route_name: care.settings

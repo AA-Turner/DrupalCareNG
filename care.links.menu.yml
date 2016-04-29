@@ -1,0 +1,4 @@
+care.settings:
+  title: CARE settings
+  parent: system.admin_config_services
+  route_name: care.settings
