@@ -89,8 +89,8 @@ function care_call_method($methodname, $data = array(), $typedata = NULL) {
       $client = new SoapClient($service_address_url, $soap_options);
     }
     catch (Exception $e) {
-      Drupal::logger('care')->notice('Error: !message', array(
-        '!message' => $e->getMessage()), WATCHDOG_ERROR);
+      Drupal::logger('care')->notice('Error: @message', array(
+        '@message' => $e->getMessage()), WATCHDOG_ERROR);
       $connection_failed = TRUE;
       $resultxml->ErrorMessage = 'Failed to connect: ' . $e->getMessage();
       return $resultxml;
@@ -158,8 +158,8 @@ function care_call_method($methodname, $data = array(), $typedata = NULL) {
     }
   }
   catch (Exception $e) {
-    Drupal::logger('care')->notice('CARE Error: !message', array(
-      '!message' => $e->getMessage()), WATCHDOG_ERROR);
+    Drupal::logger('care')->notice('CARE Error: @message', array(
+      '@message' => $e->getMessage()), WATCHDOG_ERROR);
     $resultxml->ErrorMessage = $e->getMessage();
     return $resultxml;
   }
