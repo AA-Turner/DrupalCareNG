@@ -72,7 +72,7 @@ function care_call_method($methodname, $data = array(), $typedata = NULL) {
   static $connection_failed = FALSE;
   $resultxml = new SimpleXMLElement('<xml></xml>');
   if ($connection_failed) {
-    Drupal::logger('care')->notice('Error: skipped CARE call as a previous call failed to connect', array(), WATCHDOG_ERROR);
+    Drupal::logger('care')->error('Error: skipped CARE call as a previous call failed to connect');
     $resultxml->ErrorMessage = t('Error: skipped CARE call as a previous call failed to connect');
     return $resultxml;
   }
@@ -89,8 +89,8 @@ function care_call_method($methodname, $data = array(), $typedata = NULL) {
       $client = new SoapClient($service_address_url, $soap_options);
     }
     catch (Exception $e) {
-      Drupal::logger('care')->notice('Error: @message', array(
-        '@message' => $e->getMessage()), WATCHDOG_ERROR);
+      Drupal::logger('care')->error('Error: @message', array(
+        '@message' => $e->getMessage()));
       $connection_failed = TRUE;
       $resultxml->ErrorMessage = 'Failed to connect: ' . $e->getMessage();
       return $resultxml;
@@ -105,7 +105,7 @@ function care_call_method($methodname, $data = array(), $typedata = NULL) {
       $xml->addChild($parameter, $value);
     }
     else {
-      Drupal::logger('care')->notice('Missing parameter name (PHP array key) for parameter for !method call. Data array: !data', array(
+      Drupal::logger('care')->error('Missing parameter name (PHP array key) for parameter for !method call. Data array: !data', array(
         '!method' => $methodname,
         '!data' => print_r($data, TRUE)), WATCHDOG_WARNING);
     }
@@ -158,8 +158,8 @@ function care_call_method($methodname, $data = array(), $typedata = NULL) {
     }
   }
   catch (Exception $e) {
-    Drupal::logger('care')->notice('CARE Error: @message', array(
-      '@message' => $e->getMessage()), WATCHDOG_ERROR);
+    Drupal::logger('care')->error('CARE Error: @message', array(
+      '@message' => $e->getMessage()));
     $resultxml->ErrorMessage = $e->getMessage();
     return $resultxml;
   }
