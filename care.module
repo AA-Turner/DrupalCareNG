@@ -133,9 +133,9 @@ function care_call_method($methodname, $data = array(), $typedata = NULL) {
 
   // Log any CARE error results.
   if (isset($resultxml->ErrorMessage)) {
-    Drupal::logger('care')->notice('@method Error: @message', array(
+    Drupal::logger('care')->error('@method Error: @message', array(
       '@method' => $methodname,
-      '@message' => (string)$resultxml->ErrorMessage), WATCHDOG_ERROR);
+      '@message' => (string)$resultxml->ErrorMessage));
   }
 
   return $resultxml;

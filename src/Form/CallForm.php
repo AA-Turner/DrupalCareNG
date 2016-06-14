@@ -131,7 +131,7 @@ class CallForm extends ConfigFormBase {
             'value' => 'other'))));
     $form['parameters'] = array(
       '#title' => t('XMLParameters'),
-      '#description' => t('Enter parameters and values one per line, separated by a colon.'),
+      '#description' => t('Enter parameters and values one per line, separated by a colon and optional space.'),
       '#type' => 'textarea',
       '#default_value' => $form_state->getValue('parameters'));
     $form['submit'] = array(
