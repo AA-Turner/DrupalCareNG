@@ -1,8 +1,4 @@
 <?php
-/**
- * @file
- * Form for testing CARE calls.
- */
 
 namespace Drupal\care\Form;
 
@@ -10,9 +6,6 @@ use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Link;
 use Drupal\Core\Url;
-use \SoapClient;
-use \Exception;
-
 
 /**
  * Provides a test form object.
@@ -20,23 +13,21 @@ use \Exception;
 class CallForm extends ConfigFormBase {
 
   /**
-   * Return the form's unique ID.
+   * {@inheritdoc}
    */
   public function getFormId() {
     return 'care_call_form';
   }
 
   /**
-   * @ERROR!!!
+   * {@inheritdoc}
    */
   protected function getEditableConfigNames() {
     return array();
   }
 
   /**
-   * Build the form.
-   *
-   * @see \Drupal\Core\Form\ConfigFormBase::buildForm()
+   * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
 
@@ -57,8 +48,10 @@ class CallForm extends ConfigFormBase {
     $form['intro'] = array(
       '#prefix' => '<p>',
       '#markup' => t('Use this form to test CARE calls. Refer to the @documentation for details of the required call types and parameters.', array(
-        '@documentation' => Link::fromTextAndUrl(t('CARE API documentation'), Url::fromURI($doc_root . '/WEBServicesSummary.htm'))->toString())),
-      '#suffix' => '</p>');
+        '@documentation' => Link::fromTextAndUrl(t('CARE API documentation'), Url::fromURI($doc_root . '/WEBServicesSummary.htm'))->toString(),
+      )),
+      '#suffix' => '</p>',
+    );
 
     if ($form_state->getValue('care_call_result', FALSE)) {
       $form['care_call_result_display'] = array(
@@ -67,8 +60,11 @@ class CallForm extends ConfigFormBase {
         '#rows' => 20,
         '#attributes' => array(
           'class' => array(
-            'carexmlresult')),
-        '#value' => $form_state->getValue('care_call_result'));
+            'carexmlresult',
+          ),
+        ),
+        '#value' => $form_state->getValue('care_call_result'),
+      );
     }
 
     $form['method'] = array(
@@ -76,15 +72,21 @@ class CallForm extends ConfigFormBase {
       '#type' => 'radios',
       '#options' => array(
         'SelectContactData' => t('SelectContactData (@doc)', array(
-          '@doc' => Link::fromTextAndUrl(t('Documentation'), Url::fromURI($doc_root . '/SelectContactData.htm'))->toString())),
+          '@doc' => Link::fromTextAndUrl(t('Documentation'), Url::fromURI($doc_root . '/SelectContactData.htm'))->toString(),
+        )),
         'GetLookupData' => t('GetLookupData (@doc)', array(
-          '@doc' => Link::fromTextAndUrl(t('Documentation'), Url::fromURI($doc_root . '/GetLookupData.htm'))->toString())),
+          '@doc' => Link::fromTextAndUrl(t('Documentation'), Url::fromURI($doc_root . '/GetLookupData.htm'))->toString(),
+        )),
         'FindContacts' => t('FindContacts (@doc)', array(
-          '@doc' => Link::fromTextAndUrl(t('Documentation'), Url::fromURI($doc_root . '/FindContacts.htm'))->toString())),
+          '@doc' => Link::fromTextAndUrl(t('Documentation'), Url::fromURI($doc_root . '/FindContacts.htm'))->toString(),
+        )),
         'FindMembers' => t('FindMembers (@doc)', array(
-          '@doc' => Link::fromTextAndUrl(t('Documentation'), Url::fromURI($doc_root . '/FindMembers.htm'))->toString())),
-        'other' => t('Other')),
-      '#default_value' => $form_state->getValue('method'));
+          '@doc' => Link::fromTextAndUrl(t('Documentation'), Url::fromURI($doc_root . '/FindMembers.htm'))->toString(),
+        )),
+        'other' => t('Other'),
+      ),
+      '#default_value' => $form_state->getValue('method'),
+    );
     $form['selectcontactdata_type'] = array(
       '#title' => t('SelectDataType'),
       '#type' => 'textfield',
@@ -92,7 +94,11 @@ class CallForm extends ConfigFormBase {
       '#states' => array(
         'visible' => array(
           ':input[name="method"]' => array(
-            'value' => 'SelectContactData'))));
+            'value' => 'SelectContactData',
+          ),
+        ),
+      ),
+    );
     $form['getlookupdata_type'] = array(
       '#title' => t('LookupDataType'),
       '#type' => 'textfield',
@@ -100,7 +106,11 @@ class CallForm extends ConfigFormBase {
       '#states' => array(
         'visible' => array(
           ':input[name="method"]' => array(
-            'value' => 'GetLookupData'))));
+            'value' => 'GetLookupData',
+          ),
+        ),
+      ),
+    );
     $form['other_method'] = array(
       '#title' => t('Method Name'),
       '#type' => 'textfield',
@@ -108,19 +118,28 @@ class CallForm extends ConfigFormBase {
       '#states' => array(
         'visible' => array(
           ':input[name="method"]' => array(
-            'value' => 'other'))));
+            'value' => 'other',
+          ),
+        ),
+      ),
+    );
     $form['other_type_name'] = array(
       '#title' => t('Data Type Name'),
       '#type' => 'radios',
       '#options' => array(
         'pSelectDataType' => 'SelectDataType',
-        'pDataType' => 'DataType'),
+        'pDataType' => 'DataType',
+      ),
       '#description' => t('See documentation for the specific method, but this is usually SelectDataType.'),
       '#default_value' => $form_state->getValue('other_type_name'),
       '#states' => array(
         'visible' => array(
           ':input[name="method"]' => array(
-            'value' => 'other'))));
+            'value' => 'other',
+          ),
+        ),
+      ),
+    );
     $form['other_type_value'] = array(
       '#title' => t('Data Type Value'),
       '#type' => 'textfield',
@@ -128,20 +147,26 @@ class CallForm extends ConfigFormBase {
       '#states' => array(
         'visible' => array(
           ':input[name="method"]' => array(
-            'value' => 'other'))));
+            'value' => 'other',
+          ),
+        ),
+      ),
+    );
     $form['parameters'] = array(
       '#title' => t('XMLParameters'),
       '#description' => t('Enter parameters and values one per line, separated by a colon and optional space.'),
       '#type' => 'textarea',
-      '#default_value' => $form_state->getValue('parameters'));
+      '#default_value' => $form_state->getValue('parameters'),
+    );
     $form['submit'] = array(
       '#type' => 'submit',
-      '#value' => t('Call CARE'));
+      '#value' => t('Call CARE'),
+    );
     return $form;
   }
 
   /**
-   * @ERROR!!!
+   * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     parent::submitForm($form, $form_state);
@@ -160,17 +185,22 @@ class CallForm extends ConfigFormBase {
     switch ($method) {
       case 'SelectContactData':
         $typedata = array(
-          'pSelectDataType' => $form_state->getValue('selectcontactdata_type'));
+          'pSelectDataType' => $form_state->getValue('selectcontactdata_type'),
+        );
         break;
+
       case 'GetLookupData':
         $typedata = array(
-          'pLookupDataType' => $form_state->getValue('getlookupdata_type'));
+          'pLookupDataType' => $form_state->getValue('getlookupdata_type'),
+        );
         break;
+
       case 'other':
         $method = $form_state->getValue('other_method');
         if ($form_state->getValue('other_type_name')) {
           $typedata = array(
-            $form_state->getValue('other_type_name') => $form_state->getValue('other_type_value'));
+            $form_state->getValue('other_type_name') => $form_state->getValue('other_type_value'),
+          );
         }
         break;
     }
@@ -179,4 +209,5 @@ class CallForm extends ConfigFormBase {
     $form_state->setValue('care_call_result', _care_pretty_xml($result));
     $form_state->setRebuild();
   }
+
 }

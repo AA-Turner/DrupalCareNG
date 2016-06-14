@@ -13,29 +13,36 @@ function care_permission() {
     'administer care module' => array(
       'title' => t('Administer CARE module'),
       'description' => t('Configure how this site connects to CARE.'),
-      'restrict access' => TRUE));
+      'restrict access' => TRUE,
+    ),
+  );
 }
 
 /**
- * Function to call CARE SOAP client with method name and associative array of data.
+ * Function to call CARE SOAP client with method name and array of data.
  *
- * This function handles and logs errors that occur at the SOAP level. It does not
- * handle or log any error conditions that are returned (without error) in the SOAP
- * call's result data.
+ * This function handles and logs errors that occur at the SOAP level. It does
+ * not handle or log any error conditions that are returned (without error) in
+ * the SOAP call's result data.
  *
- * @param $methodname The
- *          name of the SOAP method to call, e.g. "AddContact"
- * @param $data A
- *          PHP associative array of parameter data, e.g. array('Title' => 'Mr', 'Forenames' => 'Fred')
- * @param $typedata An
- *          optional CARE type and name for the method, if needed, e.g. array('pSelectDataType' =>
- *          'xcdtContactMembershipDetails')
- * @return SimpleXMLElement containg the result, or an object with an ErrorMessage in the case of any failure.
+ * @param string $methodname
+ *          The name of the SOAP method to call, e.g. "AddContact".
+ * @param array $data
+ *          A PHP associative array of parameter data,
+ *          e.g. array('Title' => 'Mr', 'Forenames' => 'Fred').
+ * @param array $typedata
+ *          An optional CARE type and name for the method, if needed,
+ *          e.g. array('pSelectDataType' => 'xcdtContactMembershipDetails').
+ *
+ * @return SimpleXMLElement
+ *     Containing the result, or an object with an ErrorMessage in the case
+ *     of any failure.
  */
 function care_call_method($methodname, $data = array(), $typedata = NULL) {
   // Store client object for later calls.
   static $client = NULL;
-  // Don't wait for connection to time out again if it previously failed for this web request.
+  // Don't wait for connection to time out again if it previously failed for
+  // this web request.
   static $connection_failed = FALSE;
   $resultxml = new SimpleXMLElement('<xml></xml>');
   if ($connection_failed) {
@@ -47,17 +54,20 @@ function care_call_method($methodname, $data = array(), $typedata = NULL) {
   if (!$client) {
     $service_address_url = Drupal::config('care.settings')->get('care_wsdl_url');
     $soap_options = array(
-      'wsdl_cache' => WSDL_CACHE_BOTH);
+      'wsdl_cache' => WSDL_CACHE_BOTH,
+    );
     if (Drupal::config('care.settings')->get('care_log_results')) {
       $soap_options += array(
-        'trace' => TRUE);
+        'trace' => TRUE,
+      );
     }
     try {
       $client = new SoapClient($service_address_url, $soap_options);
     }
     catch (Exception $e) {
       Drupal::logger('care')->error('Error: @message', array(
-        '@message' => $e->getMessage()));
+        '@message' => $e->getMessage(),
+      ));
       $connection_failed = TRUE;
       $resultxml->ErrorMessage = 'Failed to connect: ' . $e->getMessage();
       return $resultxml;
@@ -68,13 +78,15 @@ function care_call_method($methodname, $data = array(), $typedata = NULL) {
   // Add parameters with values as XML child elements.
   foreach ($data as $parameter => $value) {
     if ($parameter) {
-      $value = str_replace('&', '&amp;', $value); // addChild escapes "<" and ">" but not "&".
+      // addChild escapes "<" and ">" but not "&".
+      $value = str_replace('&', '&amp;', $value);
       $xml->addChild($parameter, $value);
     }
     else {
       Drupal::logger('care')->error('Missing parameter name (PHP array key) for parameter for !method call. Data array: !data', array(
         '!method' => $methodname,
-        '!data' => print_r($data, TRUE)), WATCHDOG_WARNING);
+        '!data' => print_r($data, TRUE),
+      ), WATCHDOG_WARNING);
     }
   }
 
@@ -87,11 +99,13 @@ function care_call_method($methodname, $data = array(), $typedata = NULL) {
       if (Drupal::config('care.settings')->get('care_log_calls')) {
         Drupal::logger('care')->notice('@method call: <pre>@params</pre>', array(
           '@method' => $methodname,
-          '@params' => _care_pretty_xml($xml)));
+          '@params' => _care_pretty_xml($xml),
+        ));
       }
       $result = $client->$methodname(array(
         $typetype => $typename,
-        'pXMLParams' => $xml->asXML()));
+        'pXMLParams' => $xml->asXML(),
+      ));
       // Return the result as a new SimpleXML element.
       $resultname = $methodname . 'Result';
       $resultxml = new SimpleXMLElement($result->$resultname);
@@ -99,7 +113,8 @@ function care_call_method($methodname, $data = array(), $typedata = NULL) {
         Drupal::logger('care')->notice('@method result (@size): <pre>@result</pre>', array(
           '@method' => $methodname,
           '@size' => format_size(strlen($client->__getLastResponse())),
-          '@result' => _care_pretty_xml($resultxml)));
+          '@result' => _care_pretty_xml($resultxml),
+        ));
       }
     }
     else {
@@ -107,10 +122,12 @@ function care_call_method($methodname, $data = array(), $typedata = NULL) {
       if (Drupal::config('care.settings')->get('care_log_calls')) {
         Drupal::logger('care')->notice('@method call: <pre>@params</pre>', array(
           '@method' => $methodname,
-          '@params' => _care_pretty_xml($xml)));
+          '@params' => _care_pretty_xml($xml),
+        ));
       }
       $result = $client->$methodname(array(
-        'pXMLParams' => $xml->asXML()));
+        'pXMLParams' => $xml->asXML(),
+      ));
       // Return the result as a new SimpleXML element.
       $resultname = $methodname . 'Result';
       $resultxml = new SimpleXMLElement($result->$resultname);
@@ -118,13 +135,15 @@ function care_call_method($methodname, $data = array(), $typedata = NULL) {
         Drupal::logger('care')->notice('@method result (@size): <pre>@result</pre>', array(
           '@method' => $methodname,
           '@size' => format_size(strlen($client->__getLastResponse())),
-          '@result' => _care_pretty_xml($resultxml)));
+          '@result' => _care_pretty_xml($resultxml),
+        ));
       }
     }
   }
   catch (Exception $e) {
     Drupal::logger('care')->error('CARE Error: @message', array(
-      '@message' => $e->getMessage()));
+      '@message' => $e->getMessage(),
+    ));
     $resultxml->ErrorMessage = $e->getMessage();
     return $resultxml;
   }
@@ -133,7 +152,8 @@ function care_call_method($methodname, $data = array(), $typedata = NULL) {
   if (isset($resultxml->ErrorMessage)) {
     Drupal::logger('care')->error('@method Error: @message', array(
       '@method' => $methodname,
-      '@message' => (string)$resultxml->ErrorMessage));
+      '@message' => (string) $resultxml->ErrorMessage,
+    ));
   }
 
   return $resultxml;

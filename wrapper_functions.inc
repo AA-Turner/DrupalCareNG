@@ -2,21 +2,23 @@
 
 /**
  * @file
- * Various useful functions that wrap complex CARE calls where only one or two
- * variable arguments are needed.
+ * Various useful functions that wrap complex CARE calls.
  */
 
 /**
- * Check whether given ContactNumber has an existing positive Gift Aid
- * declaration, for both membership and donations, or not.
+ * Check whether given ContactNumber has existing Gift Aid.
+ *
+ * Checks for positive declaration, for both membership and donations.
  * If there is an existing declaration, return the CARE XML data object.
  */
 function care_giftaid_existing($contact_number) {
   if ($contact_number) {
     $data = array(
-      'ContactNumber' => $contact_number);
+      'ContactNumber' => $contact_number,
+    );
     $typedata = array(
-      'pSelectDataType' => 'xcdtContactGiftAidDeclarations');
+      'pSelectDataType' => 'xcdtContactGiftAidDeclarations',
+    );
     $care_xml_data = care_call_method('SelectContactData', $data, $typedata);
     if (!isset($care_xml_data->ErrorMessage)) {
       foreach ($care_xml_data as $declaration_data) {
@@ -36,8 +38,10 @@ function care_giftaid_existing($contact_number) {
 }
 
 /**
- * Add new Gift Aid declaration record for the given ContactNumber, either a
- * positive declaration or a note that the declaration was declined.
+ * Add new Gift Aid declaration record for the given ContactNumber.
+ *
+ * Add either a positive declaration or a note that the declaration
+ * was declined.
  */
 function care_giftaid_declare($contact_number, $declaration = TRUE) {
   // Calculate start date of current tax year.
@@ -49,9 +53,11 @@ function care_giftaid_declare($contact_number, $declaration = TRUE) {
   $start_date = $aprilsixlast;
   // Check all previous declarations.
   $data = array(
-    'ContactNumber' => $contact_number);
+    'ContactNumber' => $contact_number,
+  );
   $typedata = array(
-    'pSelectDataType' => 'xcdtContactGiftAidDeclarations');
+    'pSelectDataType' => 'xcdtContactGiftAidDeclarations',
+  );
   $care_xml_data = care_call_method('SelectContactData', $data, $typedata);
   foreach ($care_xml_data as $declaration_data) {
     if ((string) $declaration_data->EndDate == '') {
@@ -63,7 +69,8 @@ function care_giftaid_declare($contact_number, $declaration = TRUE) {
         'CancelledOn' => $yesterday->format('d/m/Y'),
         'CancellationReason' => 'F',
         'Source' => 'WEB',
-        'DoCancel' => 'Y');
+        'DoCancel' => 'Y',
+      );
       $care_result_xml = care_call_method('CancelGiftAidDeclaration', $data);
       $start_date = new DateTime('today');
     }
@@ -85,7 +92,8 @@ function care_giftaid_declare($contact_number, $declaration = TRUE) {
       'DeclarationMethod' => 'W',
       'Donations' => 'Y',
       'Members' => 'Y',
-      'Source' => 'WEB');
+      'Source' => 'WEB',
+    );
     $resultxml = care_call_method('AddGiftAidDeclaration', $data);
   }
   else {
@@ -98,7 +106,8 @@ function care_giftaid_declare($contact_number, $declaration = TRUE) {
       'Activity' => 'F',
       'ActivityValue' => 'NGA',
       'Quantity' => 1,
-      'Source' => 'WEB');
+      'Source' => 'WEB',
+    );
     $resultxml = care_call_method('AddActivity', $data);
   }
   return $resultxml;
