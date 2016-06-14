@@ -85,9 +85,8 @@ function care_call_method($methodname, $data = array(), $typedata = NULL) {
       $typetype = key($typedata);
       $typename = $typedata[$typetype];
       if (Drupal::config('care.settings')->get('care_log_calls')) {
-        Drupal::logger('care')->notice('@method (type: @type) call: @params', array(
+        Drupal::logger('care')->notice('@method call: <pre>@params</pre>', array(
           '@method' => $methodname,
-          '@type' => $typename,
           '@params' => _care_pretty_xml($xml)));
       }
       $result = $client->$methodname(array(
@@ -97,18 +96,16 @@ function care_call_method($methodname, $data = array(), $typedata = NULL) {
       $resultname = $methodname . 'Result';
       $resultxml = new SimpleXMLElement($result->$resultname);
       if (Drupal::config('care.settings')->get('care_log_results')) {
-        Drupal::logger('care')->notice('@method (type: @type) <h2>Headers</h2><pre>@headers</pre><h2>Request</h2><pre>@request</pre><h2>Result</h2><pre>@result</pre>', array(
+        Drupal::logger('care')->notice('@method result (@size): <pre>@result</pre>', array(
           '@method' => $methodname,
-          '@type' => $typename,
-          '@headers' => $client->__getLastRequestHeaders(),
-          '@request' => $client->__getLastRequest(),
+          '@size' => format_size(strlen($client->__getLastResponse())),
           '@result' => _care_pretty_xml($resultxml)));
       }
     }
     else {
       // Call simple care method, one argument.
       if (Drupal::config('care.settings')->get('care_log_calls')) {
-        Drupal::logger('care')->notice('@method call: @params', array(
+        Drupal::logger('care')->notice('@method call: <pre>@params</pre>', array(
           '@method' => $methodname,
           '@params' => _care_pretty_xml($xml)));
       }
@@ -118,8 +115,9 @@ function care_call_method($methodname, $data = array(), $typedata = NULL) {
       $resultname = $methodname . 'Result';
       $resultxml = new SimpleXMLElement($result->$resultname);
       if (Drupal::config('care.settings')->get('care_log_results')) {
-        Drupal::logger('care')->notice('@method result: @result', array(
+        Drupal::logger('care')->notice('@method result (@size): <pre>@result</pre>', array(
           '@method' => $methodname,
+          '@size' => format_size(strlen($client->__getLastResponse())),
           '@result' => _care_pretty_xml($resultxml)));
       }
     }
