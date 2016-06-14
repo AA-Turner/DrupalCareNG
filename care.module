@@ -17,39 +17,6 @@ function care_permission() {
 }
 
 /**
- * Implements hook_menu().
- */
-function care_menu() {
-  $items['admin/config/services/care'] = array(
-    'title' => 'CARE',
-    'description' => 'Configure and test the connection to CARE.',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array(
-      'care_settings_form'),
-    'file' => 'care_settings_form.inc',
-    'access arguments' => array(
-      'administer care module'),
-    'type' => MENU_NORMAL_ITEM);
-  $items['admin/config/services/care/settings'] = array(
-    'title' => 'CARE settings',
-    'description' => 'Configure the WDSL and documentation URLs for the CARE connection.',
-    'type' => MENU_DEFAULT_LOCAL_TASK,
-    'weight' => -1);
-  $items['admin/config/services/care/call'] = array(
-    'title' => 'Test CARE call',
-    'description' => 'Manually make test CARE calls.',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array(
-      'care_call_form'),
-    'file' => 'care_call_form.inc',
-    'access arguments' => array(
-      'administer care module'),
-    'type' => MENU_LOCAL_TASK,
-    'weight' => 90);
-  return $items;
-}
-
-/**
  * Function to call CARE SOAP client with method name and associative array of data.
  *
  * This function handles and logs errors that occur at the SOAP level. It does not

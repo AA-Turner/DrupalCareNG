@@ -13,7 +13,7 @@ INSTALLATION & CONFIGURATION
 1) Install module and enable it.
 2) Configure the CARE WSDL, and documentation URLS, at:
    Configuration > Web services > CARE
-   /admin/config/services/care
+   /admin/config/services/care/settings
 
 
 USAGE
