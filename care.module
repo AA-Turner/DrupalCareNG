@@ -6,19 +6,6 @@
  */
 
 /**
- * Implements hook_permission().
- */
-function care_permission() {
-  return array(
-    'administer care module' => array(
-      'title' => t('Administer CARE module'),
-      'description' => t('Configure how this site connects to CARE.'),
-      'restrict access' => TRUE,
-    ),
-  );
-}
-
-/**
  * Function to call CARE SOAP client with method name and array of data.
  *
  * This function handles and logs errors that occur at the SOAP level. It does
