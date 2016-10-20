@@ -1,11 +1,17 @@
 INTRODUCTION
 ------------
 
-This module provides utility functions to connect a Drupal site to a CARE CRM system.
+This module provides utility functions to connect a Drupal site to a CARE CRM
+system.
 
-Functions include a low-level way to call CARE API methods directly, as well as some
-higher-level functions and utilities.
+Functions include a low-level way to call CARE API methods directly, as well as
+some higher-level functions and utilities.
 
+REQUIREMENTS
+------------
+
+The PHP SOAP extension needs to be enabled, to allow for SOAP calls to be made
+to CARE.
 
 INSTALLATION & CONFIGURATION
 ----------------------------
@@ -30,7 +36,8 @@ modules that need to use connections to a CARE server.
 CREDITS
 -------
 
-Development of this module was sponsored by CTC, the UK's national cycling charity.
+Development of this module was sponsored by Cycling UK (formerly known as CTC,
+the UK's national cycling charity).
 
  
 CONTACT
