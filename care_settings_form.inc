@@ -64,15 +64,22 @@ function care_settings_form_test_wsdl($form, &$form_state) {
     else {
       throw new Exception('SoapClient class does not exist: please enable the PHP SOAP extension.');
     }
-    drupal_set_message(t('CARE WSDL URL %url is OK.', array(
-      '%url' => $url)));
-    drupal_set_message(t('Re-enter and click %savebutton to use it.', array(
-      '%savebutton' => t('Save configuration'))));
+    if ($url == variable_get('care_wsdl_url', '')) {
+      drupal_set_message(t('CARE WSDL URL %url is OK, and is the current saved value.', array(
+        '%url' => $url)));
+    }
+    else {
+      $form_state['rebuild'] = TRUE;
+      drupal_set_message(t('CARE WSDL URL %url is OK, but is not yet saved.', array(
+        '%url' => $url)));
+      drupal_set_message(t('Click %savebutton to use this new URL.', array(
+        '%savebutton' => t('Save configuration'))), 'warning');
+    }
   }
   catch (Exception $e) {
     drupal_set_message(t('CARE WSDL URL %url failed.', array(
       '%url' => $url)), 'error');
     drupal_set_message($e->getMessage(), 'error');
-    drupal_set_message(t('Reverted to previous value.'), 'error');
+    drupal_set_message(t('Reverted URL to current saved value.'), 'error');
   }
 }
