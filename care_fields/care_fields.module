@@ -1,0 +1,666 @@
+<?php
+
+module_load_include('inc', 'care_fields', 'includes/address_select');
+module_load_include('inc', 'care_fields', 'includes/address');
+module_load_include('inc', 'care_fields', 'includes/date');
+module_load_include('inc', 'care_fields', 'includes/email');
+module_load_include('inc', 'care_fields', 'includes/membership_number');
+module_load_include('inc', 'care_fields', 'includes/memberships');
+module_load_include('inc', 'care_fields', 'includes/name');
+module_load_include('inc', 'care_fields', 'includes/telephone');
+
+/**
+ * Implements hook_permission().
+ */
+function care_fields_permission() {
+  return array(
+    'administer care fields integration' => array(
+      'title' => t('Administer CARE fields.'),
+      'description' => t('Change settings for CARE fields.')),
+    'care_fields view CARE numbers' => array(
+      'title' => t('View CARE data ID numbers in fields.'),
+      'description' => t('Show values for AddressNumber, CommunicationsNumber, for data held in CARE.')));
+}
+
+/**
+ * Implements hook_menu().
+ */
+function care_fields_menu() {
+  $items = array();
+  $items['admin/config/services/care/fields'] = array(
+    'title' => 'CARE field settings',
+    'description' => 'Configuration of CARE fields.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array(
+      'care_fields_admin_settings_form'),
+    'file' => 'admin/settings_form.inc',
+    'access arguments' => array(
+      'administer care fields integration'),
+    'type' => MENU_NORMAL_ITEM);
+  return $items;
+}
+
+/**
+ * Implements hook_field_presave().
+ */
+function care_fields_field_presave($entity_type, $entity, $field, $instance, $langcode, &$items) {
+  if ($instance['widget']['type'] == 'care_address_select_widget') {
+    foreach ($items as $delta => $item) {
+      if ($item['address_index'] >= 0) {
+        foreach ($item['address_data'][$item['address_index']] as $key => $value) {
+          $items[$delta][$key] = $value;
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_field_info().
+ */
+function care_fields_field_info() {
+  return array(
+    'care_name' => array(
+      'label' => t('CARE name field'),
+      'description' => t('A field for CARE name data.'),
+      'default_widget' => 'care_name_widget',
+      'default_formatter' => 'care_name_formatter',
+      'settings' => array(
+        'cardinality' => 1),
+      'property_type' => 'care_name',
+      'property_callbacks' => array(
+        'care_fields_name_property_info_callback')),
+    'care_membership_number' => array(
+      'label' => t('CARE membership number field'),
+      'description' => t('A field for CARE membership number data.'),
+      'default_widget' => 'care_membership_number_widget',
+      'default_formatter' => 'care_membership_number_formatter',
+      'settings' => array(
+        'cardinality' => 1),
+      'property_type' => 'care_membership_number',
+      'property_callbacks' => array(
+        'care_fields_membership_number_property_info_callback')),
+    'care_memberships' => array(
+      'label' => t('CARE memberships field'),
+      'description' => t('A field for CARE membership data.'),
+      'default_widget' => 'care_memberships_widget',
+      'default_formatter' => 'care_memberships_formatter',
+      'settings' => array(
+        'cardinality' => FIELD_CARDINALITY_UNLIMITED),
+      'property_type' => 'care_memberships',
+      'property_callbacks' => array(
+        'care_fields_memberships_property_info_callback')),
+    'care_date' => array(
+      'label' => t('CARE date field'),
+      'description' => t('A field for CARE date data.'),
+      'default_widget' => 'care_date_widget',
+      'default_formatter' => 'care_date_formatter',
+      'settings' => array(
+        'cardinality' => 1),
+      'property_type' => 'care_date',
+      'property_callbacks' => array(
+        'care_fields_date_property_info_callback')),
+    'care_address' => array(
+      'label' => t('CARE address field'),
+      'description' => t('A field for CARE address data.'),
+      'default_widget' => 'care_address_widget',
+      'default_formatter' => 'care_address_formatter',
+      'settings' => array(
+        'cardinality' => FIELD_CARDINALITY_UNLIMITED),
+      'property_type' => 'care_address',
+      'property_callbacks' => array(
+        'care_fields_address_property_info_callback')),
+    'care_telephone' => array(
+      'label' => t('CARE telephone field'),
+      'description' => t('A field for CARE telephone number data.'),
+      'default_widget' => 'care_telephone_widget',
+      'default_formatter' => 'care_telephone_formatter',
+      'settings' => array(
+        'cardinality' => FIELD_CARDINALITY_UNLIMITED),
+      'property_type' => 'care_telephone',
+      'property_callbacks' => array(
+        'care_fields_telephone_property_info_callback')),
+    'care_email' => array(
+      'label' => t('CARE email field'),
+      'description' => t('A field for CARE email address data.'),
+      'default_widget' => 'care_email_widget',
+      'default_formatter' => 'care_email_formatter',
+      'settings' => array(
+        'cardinality' => FIELD_CARDINALITY_UNLIMITED),
+      'property_type' => 'care_email',
+      'property_callbacks' => array(
+        'care_fields_email_property_info_callback')));
+}
+
+function care_fields_form_field_ui_field_edit_form_alter(&$form, &$form_state) {
+  if (in_array($form['#field']['type'], array(
+    'care_address',
+    'care_telephone',
+    'care_email'))) {
+    // Limit the cardinality options for these CARE fields.
+    $limited_options = array(
+      FIELD_CARDINALITY_UNLIMITED => t('All CARE values'),
+      1 => t('Default CARE value only'));
+    $form['field']['cardinality']['#options'] = $limited_options;
+    if (!in_array($form['field']['cardinality']['#default_value'], array_keys($limited_options))) {
+      $form['field']['cardinality']['#default_value'] = 1;
+    }
+  }
+}
+
+function care_fields_field_widget_info() {
+  return array(
+    'care_name_widget' => array(
+      'label' => t('CARE Name field widget'),
+      'field types' => array(
+        'care_name')),
+    'care_membership_number_widget' => array(
+      'label' => t('CARE Membership Number field widget'),
+      'field types' => array(
+        'care_membership_number')),
+    'care_memberships_widget' => array(
+      'label' => t('CARE Memberships field widget'),
+      'field types' => array(
+        'care_memberships')),
+    'care_date_widget' => array(
+      'label' => t('CARE Date field widget'),
+      'field types' => array(
+        'care_date')),
+    'care_address_widget' => array(
+      'label' => t('CARE Address field widget'),
+      'field types' => array(
+        'care_address')),
+    'care_address_select_widget' => array(
+      'label' => t('CARE Address selector widget'),
+      'field types' => array(
+        'care_address')),
+    'care_telephone_widget' => array(
+      'label' => t('CARE Telephone field widget'),
+      'field types' => array(
+        'care_telephone')),
+    'care_email_widget' => array(
+      'label' => t('CARE Email field widget'),
+      'field types' => array(
+        'care_email')));
+}
+
+/**
+ * Implements hook_field_widget_form().
+ */
+function care_fields_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
+  switch ($instance['widget']['type']) {
+    case 'care_name_widget':
+      _care_fields_name_form($element, $form_state, $field, $instance, $items, $delta);
+      break;
+    case 'care_membership_number_widget':
+      _care_fields_membership_number_form($element, $form_state, $field, $instance, $items, $delta);
+      break;
+    case 'care_memberships_widget':
+      _care_fields_memberships_form($element, $form_state, $field, $instance, $items, $delta);
+      break;
+    case 'care_date_widget':
+      _care_fields_date_form($element, $form_state, $field, $instance, $items, $delta);
+      break;
+    case 'care_address_widget':
+      _care_fields_address_form($element, $form_state, $field, $instance, $items, $delta);
+      break;
+    case 'care_address_select_widget':
+      _care_fields_address_select_form($element, $form_state, $field, $instance, $items, $delta);
+      break;
+    case 'care_telephone_widget':
+      _care_fields_telephone_form($element, $form_state, $field, $instance, $items, $delta);
+      break;
+    case 'care_email_widget':
+      _care_fields_email_form($element, $form_state, $field, $instance, $items, $delta);
+      break;
+  }
+  return $element;
+}
+
+/**
+ * Implements hook_field_is_empty().
+ *
+ * Used for validating required single-value fields,
+ * and to delete empty values in multi-value fields.
+ */
+function care_fields_field_is_empty($item, $field) {
+  switch ($field['type']) {
+    case 'care_name':
+      $empty = _care_fields_name_field_is_empty($item, $field);
+      break;
+    case 'care_membership_number':
+      $empty = _care_fields_membership_number_field_is_empty($item, $field);
+      break;
+    case 'care_memberships':
+      $empty = _care_fields_memberships_field_is_empty($item, $field);
+      break;
+    case 'care_date':
+      $empty = _care_fields_date_field_is_empty($item, $field);
+      break;
+    case 'care_address':
+      $empty = _care_fields_address_field_is_empty($item, $field);
+      break;
+    case 'care_telephone':
+      $empty = _care_fields_telephone_field_is_empty($item, $field);
+      break;
+    case 'care_email':
+      $empty = _care_fields_email_field_is_empty($item, $field);
+      break;
+  }
+  return $empty;
+}
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function care_fields_field_formatter_info() {
+  return array(
+    'care_name_formatter' => array(
+      'label' => t('Default'),
+      'field types' => array(
+        'care_name')),
+    'care_membership_number_formatter' => array(
+      'label' => t('Default'),
+      'field types' => array(
+        'care_membership_number')),
+    'care_memberships_formatter' => array(
+      'label' => t('Default'),
+      'field types' => array(
+        'care_memberships')),
+    'care_date_formatter' => array(
+      'label' => t('Default'),
+      'field types' => array(
+        'care_date')),
+    'care_address_formatter' => array(
+      'label' => t('Multi-line'),
+      'field types' => array(
+        'care_address')),
+    'care_address_oneline_formatter' => array(
+      'label' => t('Single line'),
+      'field types' => array(
+        'care_address')),
+    'care_address_minimal_formatter' => array(
+      'label' => t('First line and postcode'),
+      'field types' => array(
+        'care_address')),
+    'care_telephone_formatter' => array(
+      'label' => t('Default'),
+      'field types' => array(
+        'care_telephone')),
+    'care_email_formatter' => array(
+      'label' => t('Default'),
+      'field types' => array(
+        'care_email')),
+    'care_field_changed_formatter' => array(
+      'label' => t('Pending changes?'),
+      'field types' => array(
+        'care_name',
+        'care_date',
+        'care_address',
+        'care_telephone',
+        'care_email')));
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function care_fields_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  $element = array();
+  foreach ($items as $delta => $item) {
+    switch ($field['type']) {
+      case 'care_email':
+      case 'care_telephone':
+        $item_number = $item['communication_number'];
+        break;
+      case 'care_address':
+        $item_number = $item['address_number'];
+        break;
+      default:
+        $item_number = -1;
+    }
+    switch ($display['type']) {
+      case 'care_name_formatter':
+        $element[$delta]['#markup'] = trim($item['title'] . ' ' . $item['forenames'] . ' ' . $item['surname']);
+        break;
+      case 'care_membership_number_formatter':
+        $element[$delta]['#markup'] = trim($item['number']);
+        break;
+      case 'care_memberships_formatter':
+        $element[$delta]['#markup'] = _care_memberships_formatter($item);
+        $item['local_unsent_changes'] = 0;
+        break;
+      case 'care_date_formatter':
+        $month_names = date_month_names(TRUE);
+        $element[$delta]['#markup'] = $item['day'] . ' ' . $month_names[$item['month']] . ' ' . $item['year'];
+        break;
+      case 'care_address_formatter':
+      case 'care_address_oneline_formatter':
+        $lines = array();
+        if ($item['address_line_1']) {
+          $lines[] = check_plain($item['address_line_1']);
+        }
+        if ($item['address_line_2']) {
+          $lines[] = check_plain($item['address_line_2']);
+        }
+        if ($item['address_line_3']) {
+          $lines[] = check_plain($item['address_line_3']);
+        }
+        if ($item['town']) {
+          $lines[] = check_plain($item['town']);
+        }
+        if ($item['county']) {
+          $lines[] = check_plain($item['county']);
+        }
+        if ($item['country_code']) {
+          $county_options = array();
+          $country_codes = preg_split('/\r\n|[\r\n]/', variable_get('care_fields_countries', "UK|United Kingdom\nUSA|United States of America"));
+          foreach ($country_codes as $country_code) {
+            if ($country_code) {
+              $data = explode('|', $country_code);
+              $country_options[$data[0]] = $data[1];
+            }
+          }
+          if (in_array($item['country_code'], array_keys($country_options))) {
+            $country = $country_options[$item['country_code']];
+          }
+          else {
+            $country = 'Country code ' . $item['country_code'];
+          }
+          $lines[] = check_plain($country);
+        }
+        if ($item['postcode']) {
+          $lines[] = check_plain($item['postcode']);
+        }
+        if ($display['type'] == 'care_address_formatter') {
+          $element[$delta]['#markup'] = implode("<br>", $lines);
+        }
+        else {
+          $element[$delta]['#markup'] = implode(", ", $lines);
+        }
+        if (variable_get('care_fields_show_numbers', TRUE) and user_access('care_fields view CARE numbers')) {
+          $element[$delta]['#markup'] .= ' <i>[AddressNumber ' . $item['address_number'] . ']</i>';
+        }
+
+        break;
+      case 'care_address_minimal_formatter':
+        if ($item['postcode']) {
+          $element[$delta]['#markup'] = check_plain($item['address_line_1'] . ', ' . $item['postcode']);
+        }
+        break;
+      case 'care_telephone_formatter':
+        $device_options = array();
+        $device_codes = preg_split('/\r\n|[\r\n]/', variable_get('care_fields_telephone_devices'));
+        foreach ($device_codes as $device_code) {
+          if ($device_code) {
+            $data = explode('|', $device_code);
+            $device_options[$data[0]] = $data[1];
+          }
+        }
+        if (in_array($item['device_code'], array_keys($device_options))) {
+          $device = $device_options[$item['device_code']];
+        }
+        else {
+          $device = 'Device code ' . $item['device_code'];
+        }
+        $element[$delta]['#markup'] = $item['telephone'] . ' (' . $device . ')';
+        if (variable_get('care_fields_show_numbers', TRUE) and user_access('care_fields view CARE numbers')) {
+          $element[$delta]['#markup'] .= ' <i>[CommunicationNumber ' . $item['communication_number'] . ']</i>';
+        }
+        break;
+      case 'care_email_formatter':
+        $device_options = array();
+        $device_codes = preg_split('/\r\n|[\r\n]/', variable_get('care_fields_email_devices'));
+        foreach ($device_codes as $device_code) {
+          if ($device_code) {
+            $data = explode('|', $device_code);
+            $device_options[$data[0]] = $data[1];
+          }
+        }
+        if (in_array($item['device_code'], array_keys($device_options))) {
+          $device = $device_options[$item['device_code']];
+        }
+        else {
+          $device = 'Device code ' . $item['device_code'];
+        }
+        $element[$delta]['#markup'] = $item['email'] . ' (' . $device . ')';
+        if (variable_get('care_fields_show_numbers', TRUE) and user_access('care_fields view CARE numbers')) {
+          $element[$delta]['#markup'] .= ' <i>[CommunicationNumber ' . $item['communication_number'] . ']</i>';
+        }
+        break;
+    }
+    if ($display['type'] == 'care_field_changed_formatter') {
+      if ($item['local_unsent_changes'] == 1) {
+        if ($item_number == 0) {
+          $element[$delta]['#markup'] = 'New';
+        }
+        else {
+          $element[$delta]['#markup'] = 'Changed';
+        }
+      }
+      elseif ($item['local_unsent_changes'] == 2) {
+        $element[$delta]['#markup'] = 'Deleted';
+      }
+      else {
+        $element[$delta]['#markup'] = '-';
+      }
+    }
+    else {
+      if ($item['local_unsent_changes'] == 1) {
+        if ($item_number == 0) {
+          $element[$delta]['#markup'] = '<span class="care-fields-addition">' . $element[$delta]['#markup'] . ' <i>(Pending Addition)</i></span>';
+        }
+        else {
+          $element[$delta]['#markup'] = '<span class="care-fields-update">' . $element[$delta]['#markup'] . ' <i>(Pending Update)</i></span>';
+        }
+      }
+      if ($item['local_unsent_changes'] == 2) {
+        $element[$delta]['#markup'] = '<span class="care-fields-deletion">' . $element[$delta]['#markup'] . ' <i>(Pending Deletion)</i></span>';
+      }
+    }
+  }
+  return $element;
+}
+
+/**
+ * Implements hook_field_schema().
+ */
+function care_fields_field_schema($field) {
+  $schema = array();
+  switch ($field['type']) {
+    case 'care_name':
+      $schema['columns']['title'] = array(
+        'type' => 'varchar',
+        'length' => 40,
+        'default' => '',
+        'not null' => TRUE);
+      $schema['columns']['forenames'] = array(
+        'type' => 'varchar',
+        'length' => 60,
+        'default' => '',
+        'not null' => TRUE);
+      $schema['columns']['surname'] = array(
+        'type' => 'varchar',
+        'length' => 50,
+        'default' => '',
+        'not null' => TRUE);
+      $schema['columns']['local_unsent_changes'] = array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'default' => 0,
+        'not null' => TRUE);
+      break;
+    case 'care_membership_number':
+      $schema['columns']['number'] = array(
+        'type' => 'int',
+        'size' => 'normal',
+        'default' => 0,
+        'not null' => FALSE);
+      $schema['columns']['local_unsent_changes'] = array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'default' => 0,
+        'not null' => TRUE);
+      break;
+    case 'care_memberships':
+      $schema['columns']['membership_type'] = array(
+        'type' => 'varchar',
+        'length' => 50,
+        'default' => '',
+        'not null' => TRUE);
+      $schema['columns']['renewal_date'] = array(
+        'type' => 'datetime',
+        'mysql_type' => 'datetime',
+        'pgsql_type' => 'timestamp without time zone',
+        'sqlite_type' => 'varchar',
+        'sqlsrv_type' => 'smalldatetime',
+        'not null' => TRUE);
+      $schema['columns']['membership_number'] = array(
+        'type' => 'int',
+        'size' => 'normal',
+        'default' => 0,
+        'not null' => FALSE);
+      $schema['columns']['payment_plan_number'] = array(
+        'type' => 'int',
+        'size' => 'normal',
+        'default' => 0,
+        'not null' => FALSE);
+      $schema['columns']['balance'] = array(
+        'type' => 'numeric',
+        'precision' => 10,
+        'scale' => 2,
+        'default' => 0,
+        'not null' => FALSE);
+      $schema['columns']['payment_method'] = array(
+        'type' => 'varchar',
+        'length' => 10,
+        'default' => '',
+        'not null' => FALSE);
+      $schema['columns']['refreshed'] = array(
+        'type' => 'datetime',
+        'mysql_type' => 'datetime',
+        'pgsql_type' => 'timestamp without time zone',
+        'sqlite_type' => 'varchar',
+        'sqlsrv_type' => 'smalldatetime',
+        'not null' => TRUE);
+      break;
+    case 'care_date':
+      $schema['columns']['day'] = array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'default' => 0,
+        'not null' => TRUE);
+      $schema['columns']['month'] = array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'default' => 0,
+        'not null' => TRUE);
+      $schema['columns']['year'] = array(
+        'type' => 'int',
+        'size' => 'small',
+        'default' => 0,
+        'not null' => TRUE);
+      $schema['columns']['local_unsent_changes'] = array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'default' => 0,
+        'not null' => TRUE);
+      break;
+    case 'care_address':
+      $schema['columns']['address_number'] = array(
+        'type' => 'int',
+        'size' => 'normal',
+        'default' => 0,
+        'not null' => TRUE);
+      $schema['columns']['address_line_1'] = array(
+        'type' => 'varchar',
+        'length' => 255,
+        'default' => '',
+        'not null' => TRUE);
+      $schema['columns']['address_line_2'] = array(
+        'type' => 'varchar',
+        'length' => 255,
+        'default' => '',
+        'not null' => TRUE);
+      $schema['columns']['address_line_3'] = array(
+        'type' => 'varchar',
+        'length' => 255,
+        'default' => '',
+        'not null' => TRUE);
+      $schema['columns']['town'] = array(
+        'type' => 'varchar',
+        'length' => 255,
+        'default' => '',
+        'not null' => TRUE);
+      $schema['columns']['county'] = array(
+        'type' => 'varchar',
+        'length' => 255,
+        'default' => '',
+        'not null' => TRUE);
+      $schema['columns']['country_code'] = array(
+        'type' => 'varchar',
+        'length' => 255,
+        'default' => '',
+        'not null' => TRUE);
+      $schema['columns']['postcode'] = array(
+        'type' => 'varchar',
+        'length' => 12,
+        'default' => '',
+        'not null' => TRUE);
+      $schema['columns']['address_index'] = array(
+        'type' => 'int',
+        'size' => 'normal',
+        'default' => 0,
+        'not null' => TRUE);
+      $schema['columns']['local_unsent_changes'] = array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'default' => 0,
+        'not null' => TRUE);
+      break;
+    case 'care_telephone':
+      $schema['columns']['communication_number'] = array(
+        'type' => 'int',
+        'size' => 'normal',
+        'default' => 0,
+        'not null' => TRUE);
+      $schema['columns']['telephone'] = array(
+        'type' => 'varchar',
+        'length' => 20,
+        'default' => '',
+        'not null' => TRUE);
+      $schema['columns']['device_code'] = array(
+        'type' => 'varchar',
+        'length' => 8,
+        'default' => '',
+        'not null' => TRUE);
+      $schema['columns']['local_unsent_changes'] = array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'default' => 0,
+        'not null' => TRUE);
+      break;
+    case 'care_email':
+      $schema['columns']['communication_number'] = array(
+        'type' => 'int',
+        'size' => 'normal',
+        'default' => 0,
+        'not null' => TRUE);
+      $schema['columns']['email'] = array(
+        'type' => 'varchar',
+        'length' => 255,
+        'default' => '',
+        'not null' => TRUE);
+      $schema['columns']['device_code'] = array(
+        'type' => 'varchar',
+        'length' => 8,
+        'default' => '',
+        'not null' => TRUE);
+      $schema['columns']['local_unsent_changes'] = array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'default' => 0,
+        'not null' => TRUE);
+      break;
+  }
+  return $schema;
+}

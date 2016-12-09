@@ -1,0 +1,12 @@
+{ "care_user_display_membership_status_on_login" : {
+    "LABEL" : "Display membership status on login",
+    "PLUGIN" : "reaction rule",
+    "OWNER" : "rules",
+    "TAGS" : [ "CARE integration" ],
+    "REQUIRES" : [ "care_user", "rules" ],
+    "ON" : { "user_login" : [] },
+    "DO" : [
+      { "care_user_display_membership_status" : { "account" : [ "account" ] } }
+    ]
+  }
+}

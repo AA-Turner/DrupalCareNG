@@ -1,0 +1,9 @@
+name = "CARE Fields"
+description = "Defines custom field types for CARE data, to store CARE identifying numbers as well as the data."
+package = CARE
+core = 7.x
+
+dependencies[] = care
+dependencies[] = date
+
+configure = admin/config/services/care/fields

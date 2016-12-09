@@ -1,0 +1,8 @@
+<?php
+
+/**
+ * Implements hook_uninstall().
+ */
+function care_user_uninstall() {
+  variable_del('care_user_%');
+}

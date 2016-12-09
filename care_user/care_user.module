@@ -1,0 +1,35 @@
+<?php
+
+/**
+ * @file
+ * Main module file.
+ */
+
+/**
+ * Implements hook_permission().
+ */
+function care_user_permission() {
+  return array(
+    'administer care user integration' => array(
+      'title' => t('Administer CARE user integration'),
+      'description' => t('Configure CARE user integration settings.'),
+      'restrict access' => TRUE));
+}
+
+/**
+ * Implements hook_menu().
+ */
+function care_user_menu() {
+  $items = array();
+  $items['admin/config/people/accounts/care'] = array(
+    'title' => 'CARE user integration',
+    'description' => 'Configuration of CARE user integration.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array(
+      'care_user_admin_settings_form'),
+    'file' => 'admin/settings_form.inc',
+    'access arguments' => array(
+      'administer care user integration'),
+    'type' => MENU_NORMAL_ITEM);
+  return $items;
+}

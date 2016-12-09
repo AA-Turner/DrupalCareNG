@@ -1,0 +1,10 @@
+{ "care_user_save_data_on_user_update" : {
+    "LABEL" : "Save user changes to CARE",
+    "PLUGIN" : "reaction rule",
+    "OWNER" : "rules",
+    "TAGS" : [ "CARE integration" ],
+    "REQUIRES" : [ "care_user", "rules" ],
+    "ON" : { "user_update" : [] },
+    "DO" : [ { "care_user_save_all" : { "account" : [ "account" ] } } ]
+  }
+}

@@ -1,0 +1,10 @@
+name = CARE User
+description = "Integrate Drupal users with CARE contacts."
+package = CARE
+core = "7.x"
+version = 7.x-1.x
+configure = admin/config/services/care/user
+dependencies[] = care
+dependencies[] = user
+
+files[] = CareUser.inc

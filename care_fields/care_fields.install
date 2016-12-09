@@ -1,0 +1,6 @@
+<?php
+
+function care_fields_uninstall() {
+  variable_del('care_fields_%');
+}
+
