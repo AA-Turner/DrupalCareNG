@@ -5,6 +5,9 @@
  * Functions to define a CARE membership number field.
  */
 
+/**
+ * Form definition.
+ */
 function _care_fields_membership_number_form(&$element, $form_state, $field, $instance, $items, $delta) {
   $element['number'] = array(
     '#type' => 'textfield',
@@ -21,10 +24,9 @@ function _care_fields_membership_number_form(&$element, $form_state, $field, $in
     '_care_fields_field_membership_number_validate');
 }
 
-function _care_fields_membership_number_field_is_empty($item, $field) {
-  return ($item['number'] == '');
-}
-
+/**
+ * Form validation.
+ */
 function _care_fields_field_membership_number_validate(&$element, &$form_state) {
   // Remove all non-integer characters from entered number.
   $trimmed_number = preg_replace('/[^0-9]/', '', $element['number']['#value']);
@@ -35,6 +37,16 @@ function _care_fields_field_membership_number_validate(&$element, &$form_state) 
   }
 }
 
+/**
+ * Field-is-empty test.
+ */
+function _care_fields_membership_number_field_is_empty($item, $field) {
+  return ($item['number'] == '');
+}
+
+/**
+ * Entity integration.
+ */
 function care_fields_membership_number_property_info_callback(&$info, $entity_type, $field, $instance, $field_type) {
   $property = &$info[$entity_type]['bundles'][$instance['bundle']]['properties'][$field['field_name']];
   $property['getter callback'] = 'entity_metadata_field_verbatim_get';

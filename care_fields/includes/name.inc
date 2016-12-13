@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * @file
+ * Functions to define a CARE name field.
+ */
+
+/**
+ * Form definition.
+ */
 function _care_fields_name_form(&$element, $form_state, $field, $instance, $items, $delta) {
   $titles = variable_get('care_fields_titles', "Mr\nMrs\nMiss\nMs\nDr");
   $titles = preg_split('/\r\n|[\r\n]/', $titles);
@@ -52,6 +60,9 @@ function _care_fields_name_form(&$element, $form_state, $field, $instance, $item
     '_care_fields_field_widget_name_validate');
 }
 
+/**
+ * Form validation.
+ */
 function _care_fields_field_widget_name_validate(&$element, &$form_state) {
   $field_names = array(
     'title',
@@ -74,11 +85,17 @@ function _care_fields_field_widget_name_validate(&$element, &$form_state) {
   }
 }
 
+/**
+ * Field-is-empty test.
+ */
 function _care_fields_name_field_is_empty($item, $field) {
   $empty = ($item['title'] == '' and $item['forenames'] == '' and $item['surname'] == '');
   return $empty;
 }
 
+/**
+ * Entity integration.
+ */
 function care_fields_name_property_info_callback(&$info, $entity_type, $field, $instance, $field_type) {
   $property = &$info[$entity_type]['bundles'][$instance['bundle']]['properties'][$field['field_name']];
   $property['getter callback'] = 'entity_metadata_field_verbatim_get';
@@ -101,4 +118,3 @@ function care_fields_name_property_info_callback(&$info, $entity_type, $field, $
     'label' => t('Local unsent changes'),
     'setter callback' => 'entity_property_verbatim_set');
 }
-

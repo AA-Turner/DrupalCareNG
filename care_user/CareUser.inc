@@ -1,5 +1,8 @@
 <?php
-
+/**
+ * @file
+ * Define the CareUser class.
+ */
 
 class CareUser {
 
@@ -7,70 +10,85 @@ class CareUser {
 
   private $waccount;
 
-  private $membership_number;
+  private $membershipNumber;
 
-  private $membership_number_field;
+  private $membershipNumberField;
 
-  private $name_field;
+  private $nameField;
 
-  private $dob_field;
+  private $dobField;
 
-  private $address_field;
+  private $addressField;
 
-  private $email_field;
+  private $emailField;
 
-  private $telephone_field;
+  private $telephoneField;
 
-  private $memberships_field;
+  private $membershipsField;
 
+  /**
+   * Construct a CareUser object from a Drupal account.
+   */
   public function __construct($account) {
     $this->account = $account;
     $this->waccount = entity_metadata_wrapper('user', $account);
     $membership_number_field_name = variable_get('care_user_membership_number_field', '');
     if ($membership_number_field_name and isset($this->waccount->{$membership_number_field_name})) {
-      $this->membership_number_field = $this->waccount->{$membership_number_field_name};
+      $this->membershipNumberField = $this->waccount->{$membership_number_field_name};
       if ($this->waccount->{$membership_number_field_name}->value()) {
-        $this->membership_number = $this->membership_number_field->number->value();
+        $this->membershipNumber = $this->membershipNumberField->number->value();
       }
     }
     $name_field_name = variable_get('care_user_name_field', '');
     if ($name_field_name and isset($this->waccount->{$name_field_name})) {
-      $this->name_field = $this->waccount->{$name_field_name};
+      $this->nameField = $this->waccount->{$name_field_name};
     }
     $dob_field_name = variable_get('care_user_dob_field', '');
     if ($dob_field_name and isset($this->waccount->{$dob_field_name})) {
-      $this->dob_field = $this->waccount->{$dob_field_name};
+      $this->dobField = $this->waccount->{$dob_field_name};
     }
     $address_field_name = variable_get('care_user_address_field', '');
     if ($address_field_name and isset($this->waccount->$address_field_name)) {
-      $this->address_field = $this->waccount->{$address_field_name};
+      $this->addressField = $this->waccount->{$address_field_name};
     }
     $email_field_name = variable_get('care_user_email_field', '');
     if ($email_field_name and isset($this->waccount->$email_field_name)) {
-      $this->email_field = $this->waccount->{$email_field_name};
+      $this->emailField = $this->waccount->{$email_field_name};
     }
     $telephone_field_name = variable_get('care_user_telephone_field', '');
     if ($telephone_field_name and isset($this->waccount->$telephone_field_name)) {
-      $this->telephone_field = $this->waccount->{$telephone_field_name};
+      $this->telephoneField = $this->waccount->{$telephone_field_name};
     }
     $memberships_field_name = variable_get('care_user_memberships_field', '');
     if ($memberships_field_name and isset($this->waccount->$memberships_field_name)) {
-      $this->memberships_field = $this->waccount->{$memberships_field_name};
+      $this->membershipsField = $this->waccount->{$memberships_field_name};
     }
   }
 
+  /**
+   * Return the account's CARE membership number, if any.
+   */
   public function getMembershipNumber() {
-    return $this->membership_number;
+    return $this->membershipNumber;
   }
 
+  /**
+   * Return the email field as a wrapped entity.
+   */
   public function getEmailField() {
-    return $this->email_field;
+    return $this->emailField;
   }
 
+  /**
+   * Return the memberships field as a wrapped entity.
+   */
   public function getMembershipsField() {
-    return $this->memberships_field;
+    return $this->membershipsField;
   }
 
+  /**
+   * Load all data into account from CARE.
+   */
   public function fetchFromCare() {
     $this->fetchBasicDetails();
     $this->fetchCommunicationDetails();
@@ -78,11 +96,14 @@ class CareUser {
     $this->fetchMembershipDetails();
   }
 
+  /**
+   * Load basic details from CARE.
+   */
   public function fetchBasicDetails() {
-    if ($this->membership_number and ($this->name_field or $this->dob_field)) {
+    if ($this->membershipNumber and ($this->nameField or $this->dobField)) {
       $start_time = microtime(TRUE);
       $data = array(
-        'ContactNumber' => $this->membership_number);
+        'ContactNumber' => $this->membershipNumber);
       $typedata = array(
         'pSelectDataType' => 'xcdtContactInformation');
       $care_xml_data = care_call_method('SelectContactData', $data, $typedata);
@@ -90,23 +111,23 @@ class CareUser {
         drupal_set_message($care_xml_data->ErrorMessage);
       }
       else {
-        if ($this->name_field) {
+        if ($this->nameField) {
           $data = array(
-            'title' => (string)$care_xml_data->DataRow->Title,
-            'forenames' => (string)$care_xml_data->DataRow->Forenames,
-            'surname' => (string)$care_xml_data->DataRow->Surname,
+            'title' => (string) $care_xml_data->DataRow->Title,
+            'forenames' => (string) $care_xml_data->DataRow->Forenames,
+            'surname' => (string) $care_xml_data->DataRow->Surname,
             'local_unsent_changes' => 0);
-          $this->name_field->set($data);
+          $this->nameField->set($data);
         }
-        if ($this->dob_field) {
-          $date_string = (string)$care_xml_data->DataRow->DateOfBirth;
+        if ($this->dobField) {
+          $date_string = (string) $care_xml_data->DataRow->DateOfBirth;
           $date_array = explode("/", $date_string);
           $data = array(
             'day' => $date_array[0],
             'month' => $date_array[1],
             'year' => $date_array[2],
             'local_unsent_changes' => 0);
-          $this->dob_field->set($data);
+          $this->dobField->set($data);
         }
       }
       $refresh_time = microtime(TRUE) - $start_time;
@@ -118,11 +139,14 @@ class CareUser {
     }
   }
 
+  /**
+   * Load email and telephone data from CARE.
+   */
   public function fetchCommunicationDetails() {
-    if ($this->membership_number and ($this->email_field or $this->telephone_field)) {
+    if ($this->membershipNumber and ($this->emailField or $this->telephoneField)) {
       $start_time = microtime(TRUE);
       $data = array(
-        'ContactNumber' => $this->membership_number);
+        'ContactNumber' => $this->membershipNumber);
       $typedata = array(
         'pSelectDataType' => 'xcdtContactCommsNumbers');
       $care_xml_data = care_call_method('SelectContactData', $data, $typedata);
@@ -131,15 +155,15 @@ class CareUser {
       }
       else {
         // Email field.
-        if ($this->email_field) {
+        if ($this->emailField) {
           $field_info = field_info_field(variable_get('care_user_email_field', ''));
           $multiple_value_field = ($field_info['cardinality'] == '-1');
-          $this->email_field->set(NULL);
+          $this->emailField->set(NULL);
           // Get address data from CARE result.
           $addresses = array();
           foreach ($care_xml_data as $care_address) {
             // dpm($care_address->asXML());
-            $valid_to = (string)$care_address->ValidTo;
+            $valid_to = (string) $care_address->ValidTo;
             $valid_in_time = TRUE;
             if ($valid_to) {
               $valid_to_datetime = date_create_from_format('d/m/Y', $valid_to);
@@ -150,11 +174,11 @@ class CareUser {
             }
             if ($valid_in_time and $care_address->Email == 'Y' and $care_address->IsActive == 'Yes') {
               $addresses[] = array(
-                'communication_number' => (string)$care_address->CommunicationNumber,
-                'device_code' => (string)$care_address->DeviceCode,
-                'email' => (string)$care_address->Number,
+                'communication_number' => (string) $care_address->CommunicationNumber,
+                'device_code' => (string) $care_address->DeviceCode,
+                'email' => (string) $care_address->Number,
                 'local_unsent_changes' => 0,
-                'DeviceDefault' => (string)$care_address->DeviceDefault);
+                'DeviceDefault' => (string) $care_address->DeviceDefault);
             }
           }
           // Sort addresses by communication number.
@@ -168,39 +192,39 @@ class CareUser {
           if ($multiple_value_field) {
             // All values.
             foreach ($addresses as $i => $address) {
-              $this->email_field[$i]->set($address);
+              $this->emailField[$i]->set($address);
             }
           }
           else {
             foreach ($addresses as $i => $address) {
               // Default or last value.
               if ($address['DeviceDefault'] or ($i == count($addresses) - 1)) {
-                $this->email_field->set($address);
+                $this->emailField->set($address);
                 break;
               }
             }
           }
         }
         // Telephone field.
-        if ($this->telephone_field) {
+        if ($this->telephoneField) {
           $field_info = field_info_field(variable_get('care_user_telephone_field', ''));
           $multiple_value_field = ($field_info['cardinality'] == '-1');
-          $this->telephone_field->set(NULL);
+          $this->telephoneField->set(NULL);
           // Get address data from CARE result.
           $addresses = array();
           foreach ($care_xml_data as $care_address) {
-            $valid_to = date_create_from_format('d/m/Y', (string)$care_address->ValidTo);
+            $valid_to = date_create_from_format('d/m/Y', (string) $care_address->ValidTo);
             if ((!$valid_to or $valid_to >= date_create()) and in_array($care_address->DeviceCode, array(
               "MB",
               "TH",
               "TE",
               "S")) and $care_address->IsActive == 'Yes') {
               $addresses[] = array(
-                'communication_number' => (string)$care_address->CommunicationNumber,
-                'device_code' => (string)$care_address->DeviceCode,
-                'telephone' => (string)$care_address->Number,
+                'communication_number' => (string) $care_address->CommunicationNumber,
+                'device_code' => (string) $care_address->DeviceCode,
+                'telephone' => (string) $care_address->Number,
                 'local_unsent_changes' => 0,
-                'DeviceDefault' => (string)$care_address->DeviceDefault);
+                'DeviceDefault' => (string) $care_address->DeviceDefault);
             }
           }
 
@@ -215,14 +239,14 @@ class CareUser {
           if ($multiple_value_field) {
             // All values.
             foreach ($addresses as $i => $address) {
-              $this->telephone_field[$i]->set($address);
+              $this->telephoneField[$i]->set($address);
             }
           }
           else {
             foreach ($addresses as $i => $address) {
               // Default or last value.
               if ($address['DeviceDefault'] or ($i == count($addresses) - 1)) {
-                $this->telephone_field->set($address);
+                $this->telephoneField->set($address);
                 break;
               }
             }
@@ -238,14 +262,17 @@ class CareUser {
     }
   }
 
+  /**
+   * Load postal address details from CARE.
+   */
   public function fetchAddressDetails() {
-    if ($this->membership_number and $this->address_field) {
+    if ($this->membershipNumber and $this->addressField) {
       $start_time = microtime(TRUE);
       $field_info = field_info_field(variable_get('care_user_address_field', ''));
       $multiple_value_field = ($field_info['cardinality'] == '-1');
       $i = 0;
       $data = array(
-        'ContactNumber' => $this->membership_number);
+        'ContactNumber' => $this->membershipNumber);
       $typedata = array(
         'pSelectDataType' => 'xcdtContactAddresses');
       $care_xml_data = care_call_method('SelectContactData', $data, $typedata);
@@ -255,7 +282,7 @@ class CareUser {
       else {
         $addresses = array();
         foreach ($care_xml_data as $care_address) {
-          $valid_to = (string)$care_address->ValidTo;
+          $valid_to = (string) $care_address->ValidTo;
           $valid_in_time = TRUE;
           if ($valid_to) {
             $valid_to_datetime = date_create_from_format('d/m/Y', $valid_to);
@@ -264,20 +291,20 @@ class CareUser {
               $valid_in_time = FALSE;
             }
           }
-          $dummy_address = ((string)$care_address->Town == 'TOWN-REQUIRD' or (string)$care_address->Town == 'unknown');
-          $contact_address = ((string)$care_address->AddressType == 'C');
-          $historical = ((string)$care_address->Historical == 'Y');
+          $dummy_address = ((string) $care_address->Town == 'TOWN-REQUIRD' or (string) $care_address->Town == 'unknown');
+          $contact_address = ((string) $care_address->AddressType == 'C');
+          $historical = ((string) $care_address->Historical == 'Y');
           if (!$historical and $valid_in_time and $contact_address and !$dummy_address) {
             $addresses[] = array(
-              'address_number' => (string)$care_address->AddressNumber,
-              'address_line_1' => (string)$care_address->AddressLine1,
-              'address_line_2' => (string)$care_address->AddressLine2,
-              'address_line_3' => (string)$care_address->AddressLine3,
-              'town' => (string)$care_address->Town,
-              'county' => (string)$care_address->County,
-              'country_code' => (string)$care_address->CountryCode,
-              'postcode' => (string)$care_address->Postcode,
-              'default' => (string)$care_address->Default,
+              'address_number' => (string) $care_address->AddressNumber,
+              'address_line_1' => (string) $care_address->AddressLine1,
+              'address_line_2' => (string) $care_address->AddressLine2,
+              'address_line_3' => (string) $care_address->AddressLine3,
+              'town' => (string) $care_address->Town,
+              'county' => (string) $care_address->County,
+              'country_code' => (string) $care_address->CountryCode,
+              'postcode' => (string) $care_address->Postcode,
+              'default' => (string) $care_address->Default,
               'local_unsent_changes' => 0,
               'address_index' => 0);
           }
@@ -288,19 +315,19 @@ class CareUser {
           }
           return ($a['address_number'] < $b['address_number'] ? -1 : 1);
         });
-        $this->address_field->set(NULL);
+        $this->addressField->set(NULL);
         // Set field data.
         if ($multiple_value_field) {
           // All values.
           foreach ($addresses as $i => $address) {
-            $this->address_field[$i]->set($address);
+            $this->addressField[$i]->set($address);
           }
         }
         else {
           foreach ($addresses as $i => $address) {
             // Default or last value.
             if ($address['default'] or ($i == count($addresses) - 1)) {
-              $this->address_field->set($address);
+              $this->addressField->set($address);
               break;
             }
           }
@@ -315,38 +342,41 @@ class CareUser {
     }
   }
 
+  /**
+   * Load membership data from CARE.
+   */
   public function fetchMembershipDetails() {
-    if ($this->membership_number and $this->memberships_field) {
+    if ($this->membershipNumber and $this->membershipsField) {
       $start_time = microtime(TRUE);
       $data = array(
-        'ContactNumber' => $this->membership_number);
+        'ContactNumber' => $this->membershipNumber);
       $care_xml_data = care_call_method('FindMembers', $data);
       if (!$care_xml_data->ErrorMessage) {
-        $this->memberships_field->set(NULL);
+        $this->membershipsField->set(NULL);
         $field_info = field_info_field(variable_get('care_user_memberships_field', ''));
         $multiple_values = ($field_info['cardinality'] == '-1');
         $i = 0;
         $memberships_data = array();
         foreach ($care_xml_data as $member) {
           // Look for organisation membership records with non-zero balance.
-          $not_cancelled = (string)$member->CancellationReason == '';
+          $not_cancelled = (string) $member->CancellationReason == '';
           if ($not_cancelled) {
             $renewaldate = DateTime::createFromFormat('d/m/Y', $member->RenewalDate);
             $membership_data = array(
-              'membership_type' => (string)$member->MembershipType,
-              'membership_number' => (int)$member->MembershipNumber,
-              'payment_plan_number' => (int)$member->PaymentPlanNumber,
+              'membership_type' => (string) $member->MembershipType,
+              'membership_number' => (int) $member->MembershipNumber,
+              'payment_plan_number' => (int) $member->PaymentPlanNumber,
               'renewal_date' => $renewaldate->format('Y-m-d'),
-              'balance' => (float)$member->Balance,
+              'balance' => (float) $member->Balance,
               'payment_method' => '',
               'refreshed' => date('Y-m-d H:i:s'));
             // Check for DD payments.
             $data = array(
-              'PaymentPlanNumber' => (int)$member->PaymentPlanNumber);
+              'PaymentPlanNumber' => (int) $member->PaymentPlanNumber);
             $care_dd_xml_data = care_call_method('FindPaymentPlans', $data);
             if (!$care_dd_xml_data->ErrorMessage) {
               $plan = $care_dd_xml_data->DataRow;
-              $membership_data['payment_method'] = (string)$plan->PaymentMethod;
+              $membership_data['payment_method'] = (string) $plan->PaymentMethod;
             }
             $memberships_data[] = $membership_data;
           }
@@ -354,12 +384,12 @@ class CareUser {
         foreach ($memberships_data as $data) {
           if ($multiple_values) {
             // Add all addresses if multi-value field.
-            $this->memberships_field[$i]->set($data);
+            $this->membershipsField[$i]->set($data);
             $i++;
           }
           else {
             // Use first membership if single-value field.
-            $this->memberships_field->set($data);
+            $this->membershipsField->set($data);
             break;
           }
         }
@@ -373,6 +403,9 @@ class CareUser {
     }
   }
 
+  /**
+   * Save all data to CARE.
+   */
   public function saveToCare() {
     $success = $this->saveBasicDetails();
     $success = $this->saveAddresses() && $success;
@@ -381,41 +414,44 @@ class CareUser {
     return $success;
   }
 
+  /**
+   * Save basic data to CARE.
+   */
   public function saveBasicDetails() {
     $success = TRUE;
-    if ($this->membership_number) {
+    if ($this->membershipNumber) {
       // Update existing contact.
-      $name_changed = ($this->name_field and $this->name_field->value() and $this->name_field->local_unsent_changes->value());
-      $dob_changed = ($this->dob_field and $this->dob_field->value() and $this->dob_field->local_unsent_changes->value());
+      $name_changed = ($this->nameField and $this->nameField->value() and $this->nameField->local_unsent_changes->value());
+      $dob_changed = ($this->dobField and $this->dobField->value() and $this->dobField->local_unsent_changes->value());
       if ($name_changed or $dob_changed) {
         $data = array(
-          'ContactNumber' => $this->membership_number);
+          'ContactNumber' => $this->membershipNumber);
         if ($name_changed) {
           $data += array(
-            'Title' => $this->name_field->title->value(),
-            'Forenames' => $this->name_field->forenames->value(),
-            'Surname' => $this->name_field->surname->value());
+            'Title' => $this->nameField->title->value(),
+            'Forenames' => $this->nameField->forenames->value(),
+            'Surname' => $this->nameField->surname->value());
         }
         if ($dob_changed) {
-          $day = $this->dob_field->day->value();
-          $month = $this->dob_field->month->value();
-          $year = $this->dob_field->year->value();
+          $day = $this->dobField->day->value();
+          $month = $this->dobField->month->value();
+          $year = $this->dobField->year->value();
           $data += array(
             'DateOfBirth' => "$year-$month-$day");
         }
         $resultxml = care_call_method('UpdateContact', $data);
         if (!isset($resultxml->ErrorMessage)) {
           if ($name_changed) {
-            $this->name_field->local_unsent_changes->set(0);
+            $this->nameField->local_unsent_changes->set(0);
           }
           if ($dob_changed) {
-            $this->dob_field->local_unsent_changes->set(0);
+            $this->dobField->local_unsent_changes->set(0);
           }
           // Save fields without saving the parent user.
           field_attach_update('user', $this->account);
           watchdog('care_user', 'Updated existing user UID=%uid ContactNumber=%contact.', array(
             '%uid' => $this->account->uid,
-            '%contact' => $this->membership_number));
+            '%contact' => $this->membershipNumber));
         }
         else {
           $success = FALSE;
@@ -423,40 +459,41 @@ class CareUser {
       }
     }
     else {
-      // Minimum requirements are a completed name field and a membership number field.
-      // ToDo: use first address field, if it has a value, and update it with AddressNumber.
-      if ($this->name_field and $this->name_field->value() and $this->membership_number_field) {
-        // Add new contact. Must include Surname, Address, Town, Country and Source.
+      // Min reqs are a completed name field and a membership number field.
+      // ToDo: use first address field, if it has a value, and update it
+      // with AddressNumber?
+      if ($this->nameField and $this->nameField->value() and $this->membershipNumberField) {
+        // Add new must include Surname, Address, Town, Country and Source.
         $data = array(
-          'Title' => $this->name_field->title->value(),
-          'Forenames' => $this->name_field->forenames->value(),
-          'Surname' => $this->name_field->surname->value(),
+          'Title' => $this->nameField->title->value(),
+          'Forenames' => $this->nameField->forenames->value(),
+          'Surname' => $this->nameField->surname->value(),
           'Address' => 'unknown',
           'Town' => 'unknown',
           'Country' => 'UK',
           'Source' => 'OI');
-        if ($this->dob_field and $this->dob_field->value()) {
-          $day = $this->dob_field->day->value();
-          $month = $this->dob_field->month->value();
-          $year = $this->dob_field->year->value();
+        if ($this->dobField and $this->dobField->value()) {
+          $day = $this->dobField->day->value();
+          $month = $this->dobField->month->value();
+          $year = $this->dobField->year->value();
           $data += array(
             'DateOfBirth' => "$year-$month-$day");
         }
         $resultxml = care_call_method('AddContact', $data);
         if (!isset($resultxml->ErrorMessage)) {
-          $this->membership_number = (string)$resultxml->ContactNumber;
-          $this->name_field->local_unsent_changes->set(0);
-          if ($this->dob_field and $this->dob_field->value()) {
-            $this->dob_field->local_unsent_changes->set(0);
+          $this->membershipNumber = (string) $resultxml->ContactNumber;
+          $this->nameField->local_unsent_changes->set(0);
+          if ($this->dobField and $this->dobField->value()) {
+            $this->dobField->local_unsent_changes->set(0);
           }
-          $this->membership_number_field->set(array(
-            'number' => $this->membership_number,
+          $this->membershipNumberField->set(array(
+            'number' => $this->membershipNumber,
             'local_unsent_changes' => 0));
           // Save fields without saving the parent user.
           field_attach_update('user', $this->account);
           watchdog('care_user', 'Created new user UID=%uid ContactNumber=%contact.', array(
             '%uid' => $this->account->uid,
-            '%contact' => $this->membership_number));
+            '%contact' => $this->membershipNumber));
         }
         else {
           $success = FALSE;
@@ -466,16 +503,19 @@ class CareUser {
     return $success;
   }
 
+  /**
+   * Save postal address data to CARE.
+   */
   public function saveAddresses() {
     $success = TRUE;
-    if ($this->membership_number and $this->address_field and $this->address_field->value()) {
+    if ($this->membershipNumber and $this->addressField and $this->addressField->value()) {
       $field_info = field_info_field(variable_get('care_user_address_field', ''));
       $single_value_field = ($field_info['cardinality'] == 1);
       if ($single_value_field) {
-        $success = $this->saveAddress($this->address_field, TRUE);
+        $success = $this->saveAddress($this->addressField, TRUE);
       }
       else {
-        foreach ($this->address_field as $index => $address_field) {
+        foreach ($this->addressField as $index => $address_field) {
           $success = $this->saveAddress($address_field, ($index == 0)) && $success;
         }
       }
@@ -488,16 +528,19 @@ class CareUser {
     return $success;
   }
 
+  /**
+   * Save email data to CARE.
+   */
   public function saveEmails() {
     $success = TRUE;
-    if ($this->membership_number and $this->email_field and $this->email_field->value()) {
+    if ($this->membershipNumber and $this->emailField and $this->emailField->value()) {
       $field_info = field_info_field(variable_get('care_user_email_field', ''));
       $single_value_field = ($field_info['cardinality'] == 1);
       if ($single_value_field) {
-        $success = $this->saveEmail($this->email_field, TRUE);
+        $success = $this->saveEmail($this->emailField, TRUE);
       }
       else {
-        foreach ($this->email_field as $index => $email_field) {
+        foreach ($this->emailField as $index => $email_field) {
           $success = $this->saveEmail($email_field, ($index == 0)) && $success;
         }
       }
@@ -510,16 +553,19 @@ class CareUser {
     return $success;
   }
 
+  /**
+   * Save telephone data to CARE.
+   */
   public function saveTelephones() {
     $success = TRUE;
-    if ($this->membership_number and $this->telephone_field and $this->telephone_field->value()) {
+    if ($this->membershipNumber and $this->telephoneField and $this->telephoneField->value()) {
       $field_info = field_info_field(variable_get('care_user_telephone_field', ''));
       $single_value_field = ($field_info['cardinality'] == 1);
       if ($single_value_field) {
-        $success = $this->saveTelephone($this->telephone_field, TRUE);
+        $success = $this->saveTelephone($this->telephoneField, TRUE);
       }
       else {
-        foreach ($this->telephone_field as $index => $telephone_field) {
+        foreach ($this->telephoneField as $index => $telephone_field) {
           $success = $this->saveTelephone($telephone_field, ($index == 0)) && $success;
         }
       }
@@ -532,14 +578,17 @@ class CareUser {
     return $success;
   }
 
-  private function saveAddress(EntityMetadataWrapper &$address_field, $default = FALSE) {
+  /**
+   * Save single postal address field to CARE.
+   */
+  protected function saveAddress(EntityMetadataWrapper &$address_field, $default = FALSE) {
     $success = FALSE;
     $address_number = $address_field->address_number->value();
     $full_address = $address_field->address_line_1->value() . "\n";
     $full_address .= $address_field->address_line_2->value() . "\n";
     $full_address .= $address_field->address_line_3->value();
     $data = array(
-      'ContactNumber' => $this->membership_number,
+      'ContactNumber' => $this->membershipNumber,
       'Address' => $full_address,
       'Town' => $address_field->town->value(),
       'County' => $address_field->county->value(),
@@ -547,7 +596,7 @@ class CareUser {
       'Country' => $address_field->country_code->value(),
       'Default' => ($default ? 'Y' : 'N'));
     $old_data = array(
-      'ContactNumber' => $this->membership_number,
+      'ContactNumber' => $this->membershipNumber,
       'Default' => 'N',
       'ValidTo' => date('d/m/Y H:i:s'));
     if ($address_number) {
@@ -563,7 +612,7 @@ class CareUser {
             unset($data['AddressNumber']);
             $resultxml = care_call_method('AddAddress', $data);
             if (!isset($resultxml->ErrorMessage)) {
-              $address_field->address_number->set((string)$resultxml->AddressNumber);
+              $address_field->address_number->set((string) $resultxml->AddressNumber);
               $success = TRUE;
             }
           }
@@ -593,7 +642,7 @@ class CareUser {
       // Add new address and store AddressNumber if successful.
       $resultxml = care_call_method('AddAddress', $data);
       if (!isset($resultxml->ErrorMessage)) {
-        $address_field->address_number->set((string)$resultxml->AddressNumber);
+        $address_field->address_number->set((string) $resultxml->AddressNumber);
         $success = TRUE;
       }
     }
@@ -604,17 +653,20 @@ class CareUser {
     return $success;
   }
 
-  private function saveEmail(EntityMetadataWrapper &$email_field, $default = FALSE) {
+  /**
+   * Save single email address to CARE.
+   */
+  protected function saveEmail(EntityMetadataWrapper &$email_field, $default = FALSE) {
     $success = FALSE;
     $communication_number = $email_field->communication_number->value();
     $data = array(
-      'ContactNumber' => $this->membership_number,
-      'OldContactNumber' => $this->membership_number,
+      'ContactNumber' => $this->membershipNumber,
+      'OldContactNumber' => $this->membershipNumber,
       'Number' => $email_field->email->value(),
       'Device' => $email_field->device_code->value(),
       'DeviceDefault' => ($default ? 'Y' : 'N'));
     $old_data = array(
-      'OldContactNumber' => $this->membership_number,
+      'OldContactNumber' => $this->membershipNumber,
       'DeviceDefault' => 'N',
       'ValidTo' => date('d/m/Y H:i:s'));
     if ($communication_number) {
@@ -630,7 +682,7 @@ class CareUser {
             unset($data['CommunicationNumber']);
             $resultxml = care_call_method('AddCommunicationsNumber', $data);
             if (!isset($resultxml->ErrorMessage)) {
-              $email_field->communication_number->set((string)$resultxml->CommunicationNumber);
+              $email_field->communication_number->set((string) $resultxml->CommunicationNumber);
               $success = TRUE;
             }
           }
@@ -656,7 +708,7 @@ class CareUser {
       // Add new email record and store CommunicationsNumber if successful.
       $resultxml = care_call_method('AddCommunicationsNumber', $data);
       if (!isset($resultxml->ErrorMessage)) {
-        $email_field->communication_number->set((string)$resultxml->CommunicationNumber);
+        $email_field->communication_number->set((string) $resultxml->CommunicationNumber);
         $success = TRUE;
       }
     }
@@ -667,17 +719,20 @@ class CareUser {
     return $success;
   }
 
-  private function saveTelephone(EntityMetadataWrapper &$telephone_field, $default = FALSE) {
+  /**
+   * Save single telephone number to CARE.
+   */
+  protected function saveTelephone(EntityMetadataWrapper &$telephone_field, $default = FALSE) {
     $success = FALSE;
     $communication_number = $telephone_field->communication_number->value();
     $data = array(
-      'ContactNumber' => $this->membership_number,
-      'OldContactNumber' => $this->membership_number,
+      'ContactNumber' => $this->membershipNumber,
+      'OldContactNumber' => $this->membershipNumber,
       'Number' => $telephone_field->telephone->value(),
       'Device' => $telephone_field->device_code->value(),
       'DeviceDefault' => ($default ? 'Y' : 'N'));
     $old_data = array(
-      'OldContactNumber' => $this->membership_number,
+      'OldContactNumber' => $this->membershipNumber,
       'DeviceDefault' => 'N',
       'ValidTo' => date('d/m/Y H:i:s'));
     if ($communication_number) {
@@ -693,7 +748,7 @@ class CareUser {
             unset($data['CommunicationNumber']);
             $resultxml = care_call_method('AddCommunicationsNumber', $data);
             if (!isset($resultxml->ErrorMessage)) {
-              $telephone_field->communication_number->set((string)$resultxml->CommunicationNumber);
+              $telephone_field->communication_number->set((string) $resultxml->CommunicationNumber);
               $success = TRUE;
             }
           }
@@ -719,7 +774,7 @@ class CareUser {
       // Add new telephone and store CommunicationNumber if successful.
       $resultxml = care_call_method('AddCommunicationsNumber', $data);
       if (!isset($resultxml->ErrorMessage)) {
-        $telephone_field->communication_number->set((string)$resultxml->CommunicationNumber);
+        $telephone_field->communication_number->set((string) $resultxml->CommunicationNumber);
         $success = TRUE;
       }
     }
@@ -730,4 +785,3 @@ class CareUser {
     return $success;
   }
 }
-

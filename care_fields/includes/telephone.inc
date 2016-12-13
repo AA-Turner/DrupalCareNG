@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * @file
+ * Functions to define a CARE telephone field.
+ */
+
+/**
+ * Form definition.
+ */
 function _care_fields_telephone_form(&$element, $form_state, $field, $instance, $items, $delta) {
   $element['communication_number'] = array(
     '#type' => 'value',
@@ -45,14 +53,14 @@ function _care_fields_telephone_form(&$element, $form_state, $field, $instance, 
   }
   if (variable_get('care_fields_show_numbers', TRUE) and user_access('care_fields view CARE numbers')) {
     $element['communication_number_display'] = array(
-        '#type' => 'markup',
-        '#prefix' => '<div class="carenumber">',
-        '#markup' => t('CARE communication number: !number', array(
-            '!number' => isset($items[$delta]['communication_number']) ? (int)$items[$delta]['communication_number'] : '<i>none</i>')),
-        '#suffix' => '</div>');
+      '#type' => 'markup',
+      '#prefix' => '<div class="carenumber">',
+      '#markup' => t('CARE communication number: !number', array(
+        '!number' => isset($items[$delta]['communication_number']) ? (int) $items[$delta]['communication_number'] : '<i>none</i>')),
+      '#suffix' => '</div>');
   }
   $element['inline_end'] = array(
-      '#markup' => '</div>');
+    '#markup' => '</div>');
   if ($field['cardinality'] == 1) {
     $element['suffix'] = array(
       '#type' => 'markup',
@@ -66,6 +74,9 @@ function _care_fields_telephone_form(&$element, $form_state, $field, $instance, 
 
 }
 
+/**
+ * Form validation.
+ */
 function _care_fields_field_widget_telephone_validate(&$element, &$form_state) {
   $element_values = array(
     'communication_number' => $element['communication_number']['#value']);
@@ -104,6 +115,9 @@ function _care_fields_field_widget_telephone_validate(&$element, &$form_state) {
   }
 }
 
+/**
+ * Field-is-empty test.
+ */
 function _care_fields_telephone_field_is_empty($item, $field) {
   $not_in_care = ($item['communication_number'] == 0);
   $empty_telephone = ($item['telephone'] == '');
@@ -112,6 +126,9 @@ function _care_fields_telephone_field_is_empty($item, $field) {
   return $empty;
 }
 
+/**
+ * Entity integration.
+ */
 function care_fields_telephone_property_info_callback(&$info, $entity_type, $field, $instance, $field_type) {
   $property = &$info[$entity_type]['bundles'][$instance['bundle']]['properties'][$field['field_name']];
   $property['getter callback'] = 'entity_metadata_field_verbatim_get';
@@ -134,4 +151,3 @@ function care_fields_telephone_property_info_callback(&$info, $entity_type, $fie
     'label' => t('Local unsent changes'),
     'setter callback' => 'entity_property_verbatim_set');
 }
-

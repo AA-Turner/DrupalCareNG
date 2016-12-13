@@ -1,4 +1,8 @@
 <?php
+/**
+ * @file
+ * Integration with Rules.
+ */
 
 /**
  * Implements hook_rules_action_info().
@@ -50,21 +54,33 @@ function care_user_rules_action_info() {
   return $actions;
 }
 
+/**
+ * Rules action to fetch all data from CARE into account.
+ */
 function care_user_fetch_all($account) {
   $care_user = new CareUser($account);
   $care_user->fetchFromCare();
 }
 
+/**
+ * Rules action to fetch membership data from CARE into account.
+ */
 function care_user_fetch_memberships($account) {
   $care_user = new CareUser($account);
   $care_user->fetchMembershipDetails();
 }
 
+/**
+ * Rules action to save all data to CARE from account.
+ */
 function care_user_save_all($account) {
   $care_user = new CareUser($account);
   $care_user->saveToCare();
 }
 
+/**
+ * Rules action to display membership status for account.
+ */
 function care_user_display_membership_status($account) {
   $care_user = new CareUser($account);
   $memberships_field = $care_user->getMembershipsField();
@@ -97,6 +113,9 @@ function care_user_display_membership_status($account) {
   }
 }
 
+/**
+ * Rule action to copy Drupal account mail into CARE email field.
+ */
 function care_user_merge_drupal_mail_into_emails_field($account) {
   $care_user = new CareUser($account);
   $drupal_email = $account->mail;
@@ -169,6 +188,9 @@ function care_user_merge_drupal_mail_into_emails_field($account) {
   }
 }
 
+/**
+ * Rule action to copy CARE email into Drupal mail for account.
+ */
 function care_user_care_email_field_to_drupal_mail($account) {
   $care_user = new CareUser($account);
   $email_field = $care_user->getEmailField();
@@ -202,5 +224,3 @@ function care_user_care_email_field_to_drupal_mail($account) {
     }
   }
 }
-
-

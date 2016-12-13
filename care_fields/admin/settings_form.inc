@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * @file
+ * Administration settings form.
+ */
+
+/**
+ * Form definition.
+ */
 function care_fields_admin_settings_form($form, &$form_state) {
 
   $form['care_fields_show_numbers'] = array(
@@ -64,6 +72,9 @@ function care_fields_admin_settings_form($form, &$form_state) {
   return $form;
 }
 
+/**
+ * Reset-all-values callback.
+ */
 function care_fields_admin_reset() {
   variable_del('care_fields_titles');
   variable_del('care_fields_countries');
@@ -73,6 +84,9 @@ function care_fields_admin_reset() {
   variable_del('care_fields_website_devices');
 }
 
+/**
+ * Import-communications-devices callback.
+ */
 function care_fields_admin_devices_import() {
   $email_devices = array();
   $telephone_devices = array();
@@ -97,6 +111,9 @@ function care_fields_admin_devices_import() {
   variable_set('care_fields_website_devices', implode("\n", $website_devices));
 }
 
+/**
+ * Import-title-options callback.
+ */
 function care_fields_admin_titles_import() {
   $titles = array();
   $data = array();
@@ -109,6 +126,9 @@ function care_fields_admin_titles_import() {
   variable_set('care_fields_titles', implode("\n", $titles));
 }
 
+/**
+ * Import-country-options callback.
+ */
 function care_fields_admin_countries_import() {
   $countries = array();
   $data = array();

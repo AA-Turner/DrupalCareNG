@@ -1,5 +1,12 @@
 <?php
+/**
+ * @file
+ * Definitions and callbacks for CARE address selector field.
+ */
 
+/**
+ * Form definition.
+ */
 function _care_fields_address_select_form(&$element, $form_state, $field, $instance, $items, $delta) {
   // kpr($form_state);
   // kpr($field);
@@ -8,7 +15,8 @@ function _care_fields_address_select_form(&$element, $form_state, $field, $insta
   // dpm($items[$delta]);
   /*
    * Address numbers are used for addresses previously saved in CARE.
-   * An address number of zero means an address for the user that has not yet been saved.
+   * An address number of zero means an address for the user that has not yet
+   *  been saved.
    * An address number of minus one means a new address entered here.
    */
   $number_field_name = "";
@@ -28,7 +36,7 @@ function _care_fields_address_select_form(&$element, $form_state, $field, $insta
   }
   $number_field_name .= "[" . $element['#language'] . "][" . $element['#delta'] . "][address_index]";
   // Get addresses from relevant user, if any.
-  $waccount = null;
+  $waccount = NULL;
   switch ($instance['entity_type']) {
     case 'commerce_customer_profile':
       $account = NULL;
@@ -55,8 +63,12 @@ function _care_fields_address_select_form(&$element, $form_state, $field, $insta
     foreach ($address_data as $index => $address) {
       $compact_address = array();
       $compact_address[] = $address['address_line_1'];
-      if ($address['address_line_2']) $compact_address[] = $address['address_line_2'];
-      if ($address['address_line_3']) $compact_address[] = $address['address_line_3'];
+      if ($address['address_line_2']) {
+        $compact_address[] = $address['address_line_2'];
+      }
+      if ($address['address_line_3']) {
+        $compact_address[] = $address['address_line_3'];
+      }
       $compact_address[] = $address['town'];
       $compact_address[] = $address['postcode'];
       $address_options[$index] = implode(", ", $compact_address);
@@ -71,8 +83,6 @@ function _care_fields_address_select_form(&$element, $form_state, $field, $insta
     if (isset($items[$delta]) && $items[$delta]['address_number'] == -1) {
       $address_default = -1;
     }
-    dpm($items, 'items');
-    dpm($address_default, 'address default');
     $element['address_index'] = array(
       '#type' => 'select',
       '#title' => 'Address',
@@ -176,6 +186,9 @@ function _care_fields_address_select_form(&$element, $form_state, $field, $insta
 
 }
 
+/**
+ * Form validation.
+ */
 function _care_fields_field_widget_address_select_validate(&$element, &$form_state) {
   $address_index = $element['address_index']['#value'];
   if ($address_index === -1) {
@@ -187,4 +200,3 @@ function _care_fields_field_widget_address_select_validate(&$element, &$form_sta
     }
   }
 }
-

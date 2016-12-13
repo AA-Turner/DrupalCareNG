@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * @file
+ * Definitions and callbacks for CARE date field.
+ */
+
+/**
+ * Form definition.
+ */
 function _care_fields_date_form(&$element, $form_state, $field, $instance, $items, $delta) {
   $element['prefix'] = array(
     '#type' => 'markup',
@@ -41,6 +49,9 @@ function _care_fields_date_form(&$element, $form_state, $field, $instance, $item
 
 }
 
+/**
+ * Form validation.
+ */
 function _care_fields_field_widget_date_validate(&$element, &$form_state) {
   $field_names = array(
     'day',
@@ -72,11 +83,17 @@ function _care_fields_field_widget_date_validate(&$element, &$form_state) {
   }
 }
 
+/**
+ * Field is empty test.
+ */
 function _care_fields_date_field_is_empty($item, $field) {
   $empty = ($item['day'] == '');
   return $empty;
 }
 
+/**
+ * Entity integration.
+ */
 function care_fields_date_property_info_callback(&$info, $entity_type, $field, $instance, $field_type) {
   $property = &$info[$entity_type]['bundles'][$instance['bundle']]['properties'][$field['field_name']];
   $property['getter callback'] = 'entity_metadata_field_verbatim_get';

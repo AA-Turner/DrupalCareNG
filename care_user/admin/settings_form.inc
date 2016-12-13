@@ -1,5 +1,12 @@
 <?php
+/**
+ * @file
+ * Administration settings form.
+ */
 
+/**
+ * Form definition.
+ */
 function care_user_admin_settings_form($form, &$form_state) {
 
   $date_formats = array();

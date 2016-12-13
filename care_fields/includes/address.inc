@@ -1,5 +1,12 @@
 <?php
+/**
+ * @file
+ * Definitions and callbacks for CARE address field.
+ */
 
+/**
+ * Form definition.
+ */
 function _care_fields_address_form(&$element, $form_state, $field, $instance, $items, $delta) {
   $countries = variable_get('care_fields_countries', 'UK|United Kingdom');
   $countries = preg_split('/\r\n|[\r\n]/', $countries);
@@ -20,15 +27,15 @@ function _care_fields_address_form(&$element, $form_state, $field, $instance, $i
     '#value' => isset($items[$delta]['address_number']) ? $items[$delta]['address_number'] : 0);
   if ($field['cardinality'] == 1) {
     $element['prefix'] = array(
-        '#type' => 'markup',
-        '#markup' => '<fieldset class="form-wrapper"><legend><span class="fieldset-legend">' . $instance['label'] . '</legend><div class="fieldset-wrapper">');
+      '#type' => 'markup',
+      '#markup' => '<fieldset class="form-wrapper"><legend><span class="fieldset-legend">' . $instance['label'] . '</legend><div class="fieldset-wrapper">');
   }
   if (variable_get('care_fields_show_numbers', TRUE) and user_access('care_fields view CARE numbers')) {
     $element['address_number_display'] = array(
       '#type' => 'markup',
       '#prefix' => '<div class="carenumber">',
       '#markup' => t('CARE address number: !number', array(
-        '!number' => isset($items[$delta]['address_number']) ? (int)$items[$delta]['address_number'] : '<i>none</i>')),
+        '!number' => isset($items[$delta]['address_number']) ? (int) $items[$delta]['address_number'] : '<i>none</i>')),
       '#suffix' => '</div>');
   }
   $element['address_line_1'] = array(
@@ -82,8 +89,8 @@ function _care_fields_address_form(&$element, $form_state, $field, $instance, $i
   }
   if ($field['cardinality'] == 1) {
     $element['suffix'] = array(
-        '#type' => 'markup',
-        '#markup' => '</div>');
+      '#type' => 'markup',
+      '#markup' => '</div>');
   }
   $element['local_unsent_changes'] = array(
     '#type' => 'value',
@@ -92,6 +99,9 @@ function _care_fields_address_form(&$element, $form_state, $field, $instance, $i
     '_care_fields_field_widget_address_validate');
 }
 
+/**
+ * Form validation.
+ */
 function _care_fields_field_widget_address_validate(&$element, &$form_state) {
   $element_values = array(
     'address_number' => $element['address_number']['#value']);
@@ -143,6 +153,9 @@ function _care_fields_field_widget_address_validate(&$element, &$form_state) {
   }
 }
 
+/**
+ * Field is empty test.
+ */
 function _care_fields_address_field_is_empty($item, $field) {
   $not_in_care = ($item['address_number'] == 0);
   $empty_line_1 = ($item['address_line_1'] == '');
@@ -155,6 +168,9 @@ function _care_fields_address_field_is_empty($item, $field) {
   return $empty;
 }
 
+/**
+ * Entity integration.
+ */
 function care_fields_address_property_info_callback(&$info, $entity_type, $field, $instance, $field_type) {
   $property = &$info[$entity_type]['bundles'][$instance['bundle']]['properties'][$field['field_name']];
   $property['getter callback'] = 'entity_metadata_field_verbatim_get';
