@@ -114,23 +114,41 @@ function care_user_merge_drupal_mail_into_emails_field($account) {
     $device_strings = preg_split('/\|/', variable_get('care_fields_email_devices', "EM|Home email\nEW|Work email"));
     $device_code_default = $device_strings[0];
     if (!in_array($drupal_email, $existing)) {
-      // ToDo: if previous email was listed, update instead of adding?
-      // ToDo: add this as the first value, so it's the default.
-      $email_field[] = array(
+      $existing_emails = $email_field->value();
+      // Add this as the first value, so it's the default.
+      array_unshift($existing_emails, array(
         'communication_number' => 0,
         'email' => $drupal_email,
         'device_code' => $device_code_default,
-        'local_unsent_changes' => 1);
+        'local_unsent_changes' => 1));
+      $email_field->set($existing_emails);
       // Save field without saving the parent user.
       field_attach_update('user', $account);
       if (variable_get('care_user_rules_messages', TRUE)) {
-        drupal_set_message(t('Website account email address %address added to %field field.', array(
+        drupal_set_message(t('Website account email address %address added to %field field as new default.', array(
           '%address' => $drupal_email,
           '%field' => $field_instance['label'])));
       }
     }
     else {
-      // ToDo: make existing email that matches the new default?
+      // Make existing email that matches the new default.
+      $existing_emails = $email_field->value();
+      foreach ($existing_emails as $index => $existing) {
+        if ($existing['email'] == $drupal_email) {
+          $default = $existing;
+          unset($existing_emails[$index]);
+          break;
+        }
+      }
+      array_unshift($existing_emails, $default);
+      $email_field->set($existing_emails);
+      // Save field without saving the parent user.
+      field_attach_update('user', $account);
+      if (variable_get('care_user_rules_messages', TRUE)) {
+        drupal_set_message(t('Website account email address %address set as new %field field default.', array(
+          '%address' => $drupal_email,
+          '%field' => $field_instance['label'])));
+      }
     }
   }
   else {

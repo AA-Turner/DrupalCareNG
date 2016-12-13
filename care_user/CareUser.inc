@@ -560,6 +560,7 @@ class CareUser {
           $resultxml = care_call_method('UpdateAddress', $old_data);
           if (!isset($resultxml->ErrorMessage)) {
             // Create new address record and update AddressNumber.
+            unset($data['AddressNumber']);
             $resultxml = care_call_method('AddAddress', $data);
             if (!isset($resultxml->ErrorMessage)) {
               $address_field->address_number->set((string)$resultxml->AddressNumber);
@@ -596,7 +597,7 @@ class CareUser {
         $success = TRUE;
       }
     }
-    if ($success) {
+    if ($success and $address_field->value()) {
       // Record that we've saved changes to CARE.
       $address_field->local_unsent_changes->set(0);
     }
@@ -626,6 +627,7 @@ class CareUser {
           $resultxml = care_call_method('UpdateCommunicationsNumber', $old_data);
           if (!isset($resultxml->ErrorMessage)) {
             // Create new email record and update CommunicationsNumber.
+            unset($data['CommunicationNumber']);
             $resultxml = care_call_method('AddCommunicationsNumber', $data);
             if (!isset($resultxml->ErrorMessage)) {
               $email_field->communication_number->set((string)$resultxml->CommunicationNumber);
@@ -658,7 +660,7 @@ class CareUser {
         $success = TRUE;
       }
     }
-    if ($success) {
+    if ($success and $email_field->value()) {
       // Record that we've saved changes to CARE.
       $email_field->local_unsent_changes->set(0);
     }
@@ -688,6 +690,7 @@ class CareUser {
           $resultxml = care_call_method('UpdateCommunicationsNumber', $old_data);
           if (!isset($resultxml->ErrorMessage)) {
             // Create new telephone record and update CommunicationsNumber.
+            unset($data['CommunicationNumber']);
             $resultxml = care_call_method('AddCommunicationsNumber', $data);
             if (!isset($resultxml->ErrorMessage)) {
               $telephone_field->communication_number->set((string)$resultxml->CommunicationNumber);
@@ -720,7 +723,7 @@ class CareUser {
         $success = TRUE;
       }
     }
-    if ($success) {
+    if ($success and $telephone_field->value()) {
       // Record that we've saved changes to CARE.
       $telephone_field->local_unsent_changes->set(0);
     }
