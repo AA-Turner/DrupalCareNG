@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * Define the CareUser class.
@@ -101,6 +102,8 @@ class CareUser {
    */
   public function fetchBasicDetails() {
     if ($this->membershipNumber and ($this->nameField or $this->dobField)) {
+      watchdog('care_user', 'fetchBasicDetails for %user', array(
+        '%user' => $this->account->name));
       $start_time = microtime(TRUE);
       $data = array(
         'ContactNumber' => $this->membershipNumber);
@@ -144,6 +147,8 @@ class CareUser {
    */
   public function fetchCommunicationDetails() {
     if ($this->membershipNumber and ($this->emailField or $this->telephoneField)) {
+      watchdog('care_user', 'fetchCommunicationDetails for %user', array(
+        '%user' => $this->account->name));
       $start_time = microtime(TRUE);
       $data = array(
         'ContactNumber' => $this->membershipNumber);
@@ -162,7 +167,6 @@ class CareUser {
           // Get address data from CARE result.
           $addresses = array();
           foreach ($care_xml_data as $care_address) {
-            // dpm($care_address->asXML());
             $valid_to = (string) $care_address->ValidTo;
             $valid_in_time = TRUE;
             if ($valid_to) {
@@ -173,32 +177,28 @@ class CareUser {
               }
             }
             if ($valid_in_time and $care_address->Email == 'Y' and $care_address->IsActive == 'Yes') {
-              $addresses[] = array(
-                'communication_number' => (string) $care_address->CommunicationNumber,
+              $is_default = ((string)$care_address->DeviceDefault == 'Yes' ? 1 : 0);
+              $comm_number = (string)$care_address->CommunicationNumber;
+              $index = ($is_default ? -$comm_number : $comm_number);
+              $addresses[$index] = array(
+                'communication_number' => $comm_number,
                 'device_code' => (string) $care_address->DeviceCode,
-                'email' => (string) $care_address->Number,
+                'email' => (string) $care_address->PhoneNumber,
                 'local_unsent_changes' => 0,
-                'DeviceDefault' => (string) $care_address->DeviceDefault);
+                'device_default' => $is_default);
             }
           }
-          // Sort addresses by communication number.
-          usort($addresses, function ($a, $b) {
-            if ($a['DeviceDefault'] == 'Yes') {
-              return -1;
-            }
-            return ($a['communication_number'] < $b['communication_number'] ? 1 : -1);
-          });
+          // Sort addresses by default, then communication number.
+          ksort($addresses);
+          $addresses = array_values($addresses);
           // Set field data.
           if ($multiple_value_field) {
-            // All values.
-            foreach ($addresses as $i => $address) {
-              $this->emailField[$i]->set($address);
-            }
+            $this->emailField->set($addresses);
           }
           else {
             foreach ($addresses as $i => $address) {
-              // Default or last value.
-              if ($address['DeviceDefault'] or ($i == count($addresses) - 1)) {
+              // Default or last (most recent) value.
+              if ($address['device_default'] or ($i == count($addresses) - 1)) {
                 $this->emailField->set($address);
                 break;
               }
@@ -219,33 +219,28 @@ class CareUser {
               "TH",
               "TE",
               "S")) and $care_address->IsActive == 'Yes') {
-              $addresses[] = array(
-                'communication_number' => (string) $care_address->CommunicationNumber,
-                'device_code' => (string) $care_address->DeviceCode,
-                'telephone' => (string) $care_address->Number,
+              $is_default = ((string)$care_address->DeviceDefault == 'Yes' ? 1 : 0);
+              $comm_number = (string)$care_address->CommunicationNumber;
+              $index = ($is_default ? -$comm_number : $comm_number);
+              $addresses[$index] = array(
+                'communication_number' => $comm_number,
+                'device_code' => (string)$care_address->DeviceCode,
+                'telephone' => (string)$care_address->PhoneNumber,
                 'local_unsent_changes' => 0,
-                'DeviceDefault' => (string) $care_address->DeviceDefault);
+                'device_default' => $is_default);
             }
           }
-
-          // Sort addresses by communication number.
-          usort($addresses, function ($a, $b) {
-            if ($a['DeviceDefault'] == 'Yes') {
-              return -1;
-            }
-            return ($a['communication_number'] < $b['communication_number'] ? 1 : -1);
-          });
+          // Sort addresses by default, then communication number.
+          ksort($addresses);
+          $addresses = array_values($addresses);
           // Set field data.
           if ($multiple_value_field) {
-            // All values.
-            foreach ($addresses as $i => $address) {
-              $this->telephoneField[$i]->set($address);
-            }
+            $this->telephoneField->set($addresses);
           }
           else {
             foreach ($addresses as $i => $address) {
               // Default or last value.
-              if ($address['DeviceDefault'] or ($i == count($addresses) - 1)) {
+              if ($address['device_default'] or ($i == count($addresses) - 1)) {
                 $this->telephoneField->set($address);
                 break;
               }
@@ -267,6 +262,8 @@ class CareUser {
    */
   public function fetchAddressDetails() {
     if ($this->membershipNumber and $this->addressField) {
+      watchdog('care_user', 'fetchAddressDetails for %user', array(
+        '%user' => $this->account->name));
       $start_time = microtime(TRUE);
       $field_info = field_info_field(variable_get('care_user_address_field', ''));
       $multiple_value_field = ($field_info['cardinality'] == '-1');
@@ -347,6 +344,8 @@ class CareUser {
    */
   public function fetchMembershipDetails() {
     if ($this->membershipNumber and $this->membershipsField) {
+      watchdog('care_user', 'fetchMembershipDetails for %user', array(
+        '%user' => $this->account->name));
       $start_time = microtime(TRUE);
       $data = array(
         'ContactNumber' => $this->membershipNumber);
@@ -418,6 +417,8 @@ class CareUser {
    * Save basic data to CARE.
    */
   public function saveBasicDetails() {
+    watchdog('care_user', 'saveBasicDetails for %user', array(
+      '%user' => $this->account->name));
     $success = TRUE;
     if ($this->membershipNumber) {
       // Update existing contact.
@@ -507,6 +508,8 @@ class CareUser {
    * Save postal address data to CARE.
    */
   public function saveAddresses() {
+    watchdog('care_user', 'saveAddresses for %user', array(
+      '%user' => $this->account->name));
     $success = TRUE;
     if ($this->membershipNumber and $this->addressField and $this->addressField->value()) {
       $field_info = field_info_field(variable_get('care_user_address_field', ''));
@@ -532,6 +535,8 @@ class CareUser {
    * Save email data to CARE.
    */
   public function saveEmails() {
+    watchdog('care_user', 'saveEmails for %user', array(
+      '%user' => $this->account->name));
     $success = TRUE;
     if ($this->membershipNumber and $this->emailField and $this->emailField->value()) {
       $field_info = field_info_field(variable_get('care_user_email_field', ''));
@@ -557,6 +562,8 @@ class CareUser {
    * Save telephone data to CARE.
    */
   public function saveTelephones() {
+    watchdog('care_user', 'saveTelephones for %user', array(
+      '%user' => $this->account->name));
     $success = TRUE;
     if ($this->membershipNumber and $this->telephoneField and $this->telephoneField->value()) {
       $field_info = field_info_field(variable_get('care_user_telephone_field', ''));
@@ -701,6 +708,34 @@ class CareUser {
         if (!isset($resultxml->ErrorMessage)) {
           $email_field->set(NULL);
           $success = TRUE;
+        }
+      }
+      elseif ($email_field->value() and $default) {
+        watchdog('care_user', 'Set DeviceDefault for %e', array(
+          '%e' => $email_field->email->value()));
+        $non_default_data = array(
+          'OldContactNumber' => $this->membershipNumber,
+          'CommunicationNumber' => $communication_number,
+          'DeviceDefault' => 'Y');
+        $resultxml = care_call_method('UpdateCommunicationsNumber', $non_default_data);
+        if (!isset($resultxml->ErrorMessage)) {
+          // ??
+        }
+      }
+      elseif ($email_field->value() and !$default) {
+        $value = $email_field->value();
+        if ($value['device_default']) {
+          watchdog('care_user', 'Unset DeviceDefault for %e', array(
+            '%e' => $email_field->email->value()));
+          $non_default_data = array(
+            'OldContactNumber' => $this->membershipNumber,
+            'CommunicationNumber' => $communication_number,
+            'DeviceDefault' => 'N');
+          $resultxml = care_call_method('UpdateCommunicationsNumber', $non_default_data);
+          if (!isset($resultxml->ErrorMessage)) {
+            $value['device_default'] = 0;
+            $email_field->set($value);
+          }
         }
       }
     }

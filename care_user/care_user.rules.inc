@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * Integration with Rules.
@@ -117,6 +118,8 @@ function care_user_display_membership_status($account) {
  * Rule action to copy Drupal account mail into CARE email field.
  */
 function care_user_merge_drupal_mail_into_emails_field($account) {
+  watchdog('care_user', 'care_user_merge_drupal_mail_into_emails_field for %user', array(
+    '%user' => $account->name));
   $care_user = new CareUser($account);
   $drupal_email = $account->mail;
   $email_field = $care_user->getEmailField();
@@ -139,6 +142,7 @@ function care_user_merge_drupal_mail_into_emails_field($account) {
         'communication_number' => 0,
         'email' => $drupal_email,
         'device_code' => $device_code_default,
+        'device_default' => 1,
         'local_unsent_changes' => 1));
       $email_field->set($existing_emails);
       // Save field without saving the parent user.
@@ -150,23 +154,25 @@ function care_user_merge_drupal_mail_into_emails_field($account) {
       }
     }
     else {
-      // Make existing email that matches the new default.
+      // Make existing email that matches the new default, if not already.
       $existing_emails = $email_field->value();
-      foreach ($existing_emails as $index => $existing) {
-        if ($existing['email'] == $drupal_email) {
-          $default = $existing;
-          unset($existing_emails[$index]);
-          break;
+      if ($existing_emails[0]['email'] != $drupal_email) {
+        foreach ($existing_emails as $index => $existing) {
+          if ($existing['email'] == $drupal_email) {
+            $default = $existing;
+            $default['device_default'] = 1;
+            unset($existing_emails[$index]);
+            break;
+          }
         }
-      }
-      array_unshift($existing_emails, $default);
-      $email_field->set($existing_emails);
-      // Save field without saving the parent user.
-      field_attach_update('user', $account);
-      if (variable_get('care_user_rules_messages', TRUE)) {
-        drupal_set_message(t('Website account email address %address set as new %field field default.', array(
-          '%address' => $drupal_email,
-          '%field' => $field_instance['label'])));
+        array_unshift($existing_emails, $default);
+        $email_field->set($existing_emails);
+        user_save($account);
+        if (variable_get('care_user_rules_messages', TRUE)) {
+          drupal_set_message(t('Website account email address %address set as new %field field default.', array(
+            '%address' => $drupal_email,
+            '%field' => $field_instance['label'])));
+        }
       }
     }
   }
@@ -176,6 +182,7 @@ function care_user_merge_drupal_mail_into_emails_field($account) {
     if ($current_care != $drupal_email) {
       $email_field->email->set($drupal_email);
       $email_field->local_unsent_changes->set(1);
+      $email_field->device_default->set(1);
       // Save field without saving the parent user.
       field_attach_update('user', $account);
       if (variable_get('care_user_rules_messages', TRUE)) {
@@ -192,6 +199,8 @@ function care_user_merge_drupal_mail_into_emails_field($account) {
  * Rule action to copy CARE email into Drupal mail for account.
  */
 function care_user_care_email_field_to_drupal_mail($account) {
+  watchdog('care_user', 'care_user_care_email_field_to_drupal_mail for %user', array(
+    '%user' => $account->name));
   $care_user = new CareUser($account);
   $email_field = $care_user->getEmailField();
   $drupal_email = $account->mail;

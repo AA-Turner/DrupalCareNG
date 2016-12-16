@@ -94,6 +94,33 @@ function _care_fields_name_field_is_empty($item, $field) {
 }
 
 /**
+ * Field database schema.
+ */
+function _care_fields_care_name_schema() {
+  $schema['columns']['title'] = array(
+    'type' => 'varchar',
+    'length' => 40,
+    'default' => '',
+    'not null' => TRUE);
+  $schema['columns']['forenames'] = array(
+    'type' => 'varchar',
+    'length' => 60,
+    'default' => '',
+    'not null' => TRUE);
+  $schema['columns']['surname'] = array(
+    'type' => 'varchar',
+    'length' => 50,
+    'default' => '',
+    'not null' => TRUE);
+  $schema['columns']['local_unsent_changes'] = array(
+    'type' => 'int',
+    'size' => 'tiny',
+    'default' => 0,
+    'not null' => TRUE);
+  return $schema;
+}
+
+/**
  * Entity integration.
  */
 function care_fields_name_property_info_callback(&$info, $entity_type, $field, $instance, $field_type) {
@@ -114,7 +141,8 @@ function care_fields_name_property_info_callback(&$info, $entity_type, $field, $
     'label' => t('Surname'),
     'setter callback' => 'entity_property_verbatim_set');
   $property['property info']['local_unsent_changes'] = array(
-    'type' => 'boolean',
+    'type' => 'integer',
     'label' => t('Local unsent changes'),
+    'description' => t('0 = unchanged, 1 = pending changes, 2 = pending deletion'),
     'setter callback' => 'entity_property_verbatim_set');
 }

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * Definitions and callbacks for CARE address field.
@@ -169,6 +170,63 @@ function _care_fields_address_field_is_empty($item, $field) {
 }
 
 /**
+ * Database schema.
+ */
+function _care_fields_care_address_schema() {
+  $schema['columns']['address_number'] = array(
+    'type' => 'int',
+    'size' => 'normal',
+    'default' => 0,
+    'not null' => TRUE);
+  $schema['columns']['address_line_1'] = array(
+    'type' => 'varchar',
+    'length' => 255,
+    'default' => '',
+    'not null' => TRUE);
+  $schema['columns']['address_line_2'] = array(
+    'type' => 'varchar',
+    'length' => 255,
+    'default' => '',
+    'not null' => TRUE);
+  $schema['columns']['address_line_3'] = array(
+    'type' => 'varchar',
+    'length' => 255,
+    'default' => '',
+    'not null' => TRUE);
+  $schema['columns']['town'] = array(
+    'type' => 'varchar',
+    'length' => 255,
+    'default' => '',
+    'not null' => TRUE);
+  $schema['columns']['county'] = array(
+    'type' => 'varchar',
+    'length' => 255,
+    'default' => '',
+    'not null' => TRUE);
+  $schema['columns']['country_code'] = array(
+    'type' => 'varchar',
+    'length' => 255,
+    'default' => '',
+    'not null' => TRUE);
+  $schema['columns']['postcode'] = array(
+    'type' => 'varchar',
+    'length' => 12,
+    'default' => '',
+    'not null' => TRUE);
+  $schema['columns']['address_index'] = array(
+    'type' => 'int',
+    'size' => 'normal',
+    'default' => 0,
+    'not null' => TRUE);
+  $schema['columns']['local_unsent_changes'] = array(
+    'type' => 'int',
+    'size' => 'tiny',
+    'default' => 0,
+    'not null' => TRUE);
+  return $schema;
+}
+
+/**
  * Entity integration.
  */
 function care_fields_address_property_info_callback(&$info, $entity_type, $field, $instance, $field_type) {
@@ -209,8 +267,9 @@ function care_fields_address_property_info_callback(&$info, $entity_type, $field
     'label' => t('Postcode'),
     'setter callback' => 'entity_property_verbatim_set');
   $property['property info']['local_unsent_changes'] = array(
-    'type' => 'boolean',
+    'type' => 'integer',
     'label' => t('Local unsent changes'),
+    'description' => t('0 = unchanged, 1 = pending changes, 2 = pending deletion'),
     'setter callback' => 'entity_property_verbatim_set');
   $property['property info']['address_index'] = array(
     'type' => 'text',

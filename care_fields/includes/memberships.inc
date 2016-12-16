@@ -40,6 +40,53 @@ function _care_memberships_formatter($item) {
 }
 
 /**
+ * Database schema.
+ */
+function _care_fields_care_memberships_schema() {
+  $schema['columns']['membership_type'] = array(
+    'type' => 'varchar',
+    'length' => 50,
+    'default' => '',
+    'not null' => TRUE);
+  $schema['columns']['renewal_date'] = array(
+    'type' => 'datetime',
+    'mysql_type' => 'datetime',
+    'pgsql_type' => 'timestamp without time zone',
+    'sqlite_type' => 'varchar',
+    'sqlsrv_type' => 'smalldatetime',
+    'not null' => TRUE);
+  $schema['columns']['membership_number'] = array(
+    'type' => 'int',
+    'size' => 'normal',
+    'default' => 0,
+    'not null' => FALSE);
+  $schema['columns']['payment_plan_number'] = array(
+    'type' => 'int',
+    'size' => 'normal',
+    'default' => 0,
+    'not null' => FALSE);
+  $schema['columns']['balance'] = array(
+    'type' => 'numeric',
+    'precision' => 10,
+    'scale' => 2,
+    'default' => 0,
+    'not null' => FALSE);
+  $schema['columns']['payment_method'] = array(
+    'type' => 'varchar',
+    'length' => 10,
+    'default' => '',
+    'not null' => FALSE);
+  $schema['columns']['refreshed'] = array(
+    'type' => 'datetime',
+    'mysql_type' => 'datetime',
+    'pgsql_type' => 'timestamp without time zone',
+    'sqlite_type' => 'varchar',
+    'sqlsrv_type' => 'smalldatetime',
+    'not null' => TRUE);
+  return $schema;
+}
+
+/**
  * Entity integration.
  */
 function care_fields_memberships_property_info_callback(&$info, $entity_type, $field, $instance, $field_type) {

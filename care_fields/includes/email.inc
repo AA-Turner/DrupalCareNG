@@ -12,6 +12,9 @@ function _care_fields_email_form(&$element, $form_state, $field, $instance, $ite
   $element['communication_number'] = array(
     '#type' => 'value',
     '#value' => isset($items[$delta]['communication_number']) ? $items[$delta]['communication_number'] : 0);
+  $element['device_default'] = array(
+    '#type' => 'value',
+    '#value' => isset($items[$delta]['device_default']) ? $items[$delta]['device_default'] : 0);
   if ($field['cardinality'] == 1) {
     $element['prefix'] = array(
       '#type' => 'markup',
@@ -55,7 +58,7 @@ function _care_fields_email_form(&$element, $form_state, $field, $instance, $ite
       '#type' => 'markup',
       '#prefix' => '<div class="carenumber">',
       '#markup' => t('CARE communication number: !number', array(
-        '!number' => isset($items[$delta]['communication_number']) ? (int) $items[$delta]['communication_number'] : '<i>none</i>')),
+        '!number' => isset($items[$delta]['communication_number']) ? (int)$items[$delta]['communication_number'] : '<i>none</i>')),
       '#suffix' => '</div>');
   }
   $element['inline_end'] = array(
@@ -121,6 +124,38 @@ function _care_fields_email_field_is_empty($item, $field) {
 }
 
 /**
+ * Field datavabase schema.
+ */
+function _care_fields_care_email_schema() {
+  $schema['columns']['communication_number'] = array(
+    'type' => 'int',
+    'size' => 'normal',
+    'default' => 0,
+    'not null' => TRUE);
+  $schema['columns']['email'] = array(
+    'type' => 'varchar',
+    'length' => 255,
+    'default' => '',
+    'not null' => TRUE);
+  $schema['columns']['device_code'] = array(
+    'type' => 'varchar',
+    'length' => 8,
+    'default' => '',
+    'not null' => TRUE);
+  $schema['columns']['device_default'] = array(
+    'type' => 'int',
+    'size' => 'tiny',
+    'default' => 0,
+    'not null' => TRUE);
+  $schema['columns']['local_unsent_changes'] = array(
+    'type' => 'int',
+    'size' => 'tiny',
+    'default' => 0,
+    'not null' => TRUE);
+  return $schema;
+}
+
+/**
  * Entity integration.
  */
 function care_fields_email_property_info_callback(&$info, $entity_type, $field, $instance, $field_type) {
@@ -141,7 +176,8 @@ function care_fields_email_property_info_callback(&$info, $entity_type, $field, 
     'label' => t('Type'),
     'setter callback' => 'entity_property_verbatim_set');
   $property['property info']['local_unsent_changes'] = array(
-    'type' => 'boolean',
+    'type' => 'integer',
     'label' => t('Local unsent changes'),
+    'description' => t('0 = unchanged, 1 = pending changes, 2 = pending deletion'),
     'setter callback' => 'entity_property_verbatim_set');
 }

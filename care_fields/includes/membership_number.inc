@@ -45,6 +45,23 @@ function _care_fields_membership_number_field_is_empty($item, $field) {
 }
 
 /**
+ * Database schema.
+ */
+function _care_fields_care_membership_number_schema() {
+  $schema['columns']['number'] = array(
+    'type' => 'int',
+    'size' => 'normal',
+    'default' => 0,
+    'not null' => FALSE);
+  $schema['columns']['local_unsent_changes'] = array(
+    'type' => 'int',
+    'size' => 'tiny',
+    'default' => 0,
+    'not null' => TRUE);
+  return $schema;
+}
+
+/**
  * Entity integration.
  */
 function care_fields_membership_number_property_info_callback(&$info, $entity_type, $field, $instance, $field_type) {
