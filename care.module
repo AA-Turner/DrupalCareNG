@@ -109,7 +109,7 @@ function care_call_method($methodname, array $data = [], array $typedata = NULL,
       $service_password = variable_get('care_ntlm_password', '');
     }
     $soap_options = [
-      'wsdl_cache' => 'WSDL_CACHE_NONE',
+      'wsdl_cache' => 'WSDL_CACHE_BOTH',
       'user' => $service_username,
       'password' => $service_password,
     ];
