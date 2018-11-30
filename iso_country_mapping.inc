@@ -7,755 +7,1006 @@
 
 /**
  * Array of ISO 3166-1 alpha-2 country codes, with country names and CARE codes.
+ *
  * Note: CARE does not support all countries, these have empty CARE codes here.
  */
 function _care_country_map() {
-  return array(
-    'AD' => array(
+  return [
+    'AD' => [
       'country' => 'Andorra',
-      'care_code' => 'AND'),
-    'AE' => array(
+      'care_code' => 'AND',
+    ],
+    'AE' => [
       'country' => 'United Arab Emirates',
-      'care_code' => 'UAE'),
-    'AF' => array(
+      'care_code' => 'UAE',
+    ],
+    'AF' => [
       'country' => 'Afghanistan',
-      'care_code' => 'AFG'),
-    'AG' => array(
+      'care_code' => 'AFG',
+    ],
+    'AG' => [
       'country' => 'Antigua and Barbuda',
-      'care_code' => 'AG'),
-    'AI' => array(
+      'care_code' => 'AG',
+    ],
+    'AI' => [
       'country' => 'Anguilla',
-      'care_code' => 'AXA'),
-    'AL' => array(
+      'care_code' => 'AXA',
+    ],
+    'AL' => [
       'country' => 'Albania',
-      'care_code' => 'AL'),
-    'AM' => array(
+      'care_code' => 'AL',
+    ],
+    'AM' => [
       'country' => 'Armenia',
-      'care_code' => 'AM'),
-    'AO' => array(
+      'care_code' => 'AM',
+    ],
+    'AO' => [
       'country' => 'Angola',
-      'care_code' => 'ANG'),
-    'AQ' => array(
+      'care_code' => 'ANG',
+    ],
+    'AQ' => [
       'country' => 'Antarctica',
-      'care_code' => 'ARK'),
-    'AR' => array(
+      'care_code' => 'ARK',
+    ],
+    'AR' => [
       'country' => 'Argentina',
-      'care_code' => 'RA'),
-    'AS' => array(
+      'care_code' => 'RA',
+    ],
+    'AS' => [
       'country' => 'Samoa',
-      'care_code' => 'WS'),
-    'AT' => array(
+      'care_code' => 'WS',
+    ],
+    'AT' => [
       'country' => 'Austria',
-      'care_code' => 'A'),
-    'AU' => array(
+      'care_code' => 'A',
+    ],
+    'AU' => [
       'country' => 'Australia',
-      'care_code' => 'AUS'),
-    'AW' => array(
+      'care_code' => 'AUS',
+    ],
+    'AW' => [
       'country' => 'Aruba',
-      'care_code' => 'AUA'),
-    'AX' => array(
+      'care_code' => 'AUA',
+    ],
+    'AX' => [
       'country' => 'Åland Islands',
-      'care_code' => 'AX'),
-    'AZ' => array(
+      'care_code' => 'AX',
+    ],
+    'AZ' => [
       'country' => 'Azerbaijan',
-      'care_code' => 'AZ'),
-    'BA' => array(
+      'care_code' => 'AZ',
+    ],
+    'BA' => [
       'country' => 'Bosnia and Herzegovina',
-      'care_code' => 'BIH'),
-    'BB' => array(
+      'care_code' => 'BIH',
+    ],
+    'BB' => [
       'country' => 'Barbados',
-      'care_code' => 'BDS'),
-    'BD' => array(
+      'care_code' => 'BDS',
+    ],
+    'BD' => [
       'country' => 'Bangladesh',
-      'care_code' => 'BD'),
-    'BE' => array(
+      'care_code' => 'BD',
+    ],
+    'BE' => [
       'country' => 'Belgium',
-      'care_code' => 'B'),
-    'BF' => array(
+      'care_code' => 'B',
+    ],
+    'BF' => [
       'country' => 'Burkina Faso',
-      'care_code' => 'BF'),
-    'BG' => array(
+      'care_code' => 'BF',
+    ],
+    'BG' => [
       'country' => 'Bulgaria',
-      'care_code' => 'BG'),
-    'BH' => array(
+      'care_code' => 'BG',
+    ],
+    'BH' => [
       'country' => 'Bahrain',
-      'care_code' => 'BRN'),
-    'BI' => array(
+      'care_code' => 'BRN',
+    ],
+    'BI' => [
       'country' => 'Burundi',
-      'care_code' => 'RU'),
-    'BJ' => array(
+      'care_code' => 'RU',
+    ],
+    'BJ' => [
       'country' => 'Benin',
-      'care_code' => 'DY'),
-    'BL' => array(
+      'care_code' => 'DY',
+    ],
+    'BL' => [
       'country' => 'Saint Barthélemy',
-      'care_code' => ''),
-    'BM' => array(
+      'care_code' => '',
+    ],
+    'BM' => [
       'country' => 'Bermuda',
-      'care_code' => ''),
-    'BN' => array(
+      'care_code' => '',
+    ],
+    'BN' => [
       'country' => 'Brunei Darussalam',
-      'care_code' => ''),
-    'BO' => array(
+      'care_code' => '',
+    ],
+    'BO' => [
       'country' => 'Bolivia',
-      'care_code' => 'BOL'),
-    'BQ' => array(
+      'care_code' => 'BOL',
+    ],
+    'BQ' => [
       'country' => 'Bonaire',
-      'care_code' => ''),
-    'BR' => array(
+      'care_code' => '',
+    ],
+    'BR' => [
       'country' => 'Brazil',
-      'care_code' => 'BR'),
-    'BS' => array(
+      'care_code' => 'BR',
+    ],
+    'BS' => [
       'country' => 'Bahamas',
-      'care_code' => 'BS'),
-    'BT' => array(
+      'care_code' => 'BS',
+    ],
+    'BT' => [
       'country' => 'Bhutan',
-      'care_code' => 'BHT'),
-    'BV' => array(
+      'care_code' => 'BHT',
+    ],
+    'BV' => [
       'country' => 'Bouvet Island',
-      'care_code' => ''),
-    'BW' => array(
+      'care_code' => '',
+    ],
+    'BW' => [
       'country' => 'Botswana',
-      'care_code' => 'BW'),
-    'BY' => array(
+      'care_code' => 'BW',
+    ],
+    'BY' => [
       'country' => 'Belarus',
-      'care_code' => 'BY'),
-    'BZ' => array(
+      'care_code' => 'BY',
+    ],
+    'BZ' => [
       'country' => 'Belize',
-      'care_code' => 'BH'),
-    'CA' => array(
+      'care_code' => 'BH',
+    ],
+    'CA' => [
       'country' => 'Canada',
-      'care_code' => 'CDN'),
-    'CC' => array(
+      'care_code' => 'CDN',
+    ],
+    'CC' => [
       'country' => 'Cocos (Keeling) Islands',
-      'care_code' => ''),
-    'CD' => array(
+      'care_code' => '',
+    ],
+    'CD' => [
       'country' => 'Congo',
-      'care_code' => 'RCB'),
-    'CF' => array(
+      'care_code' => 'RCB',
+    ],
+    'CF' => [
       'country' => 'Central African Republic',
-      'care_code' => 'RCA'),
-    'CG' => array(
+      'care_code' => 'RCA',
+    ],
+    'CG' => [
       'country' => 'Congo',
-      'care_code' => 'RCB'),
-    'CH' => array(
+      'care_code' => 'RCB',
+    ],
+    'CH' => [
       'country' => 'Switzerland',
-      'care_code' => 'CH'),
-    'CI' => array(
+      'care_code' => 'CH',
+    ],
+    'CI' => [
       'country' => 'Côte d\'Ivoire',
-      'care_code' => ''),
-    'CK' => array(
+      'care_code' => '',
+    ],
+    'CK' => [
       'country' => 'Cook Islands',
-      'care_code' => ''),
-    'CL' => array(
+      'care_code' => '',
+    ],
+    'CL' => [
       'country' => 'Chile',
-      'care_code' => 'RCH'),
-    'CM' => array(
+      'care_code' => 'RCH',
+    ],
+    'CM' => [
       'country' => 'Cameroon',
-      'care_code' => 'CAM'),
-    'CN' => array(
+      'care_code' => 'CAM',
+    ],
+    'CN' => [
       'country' => 'China',
-      'care_code' => 'CN'),
-    'CO' => array(
+      'care_code' => 'CN',
+    ],
+    'CO' => [
       'country' => 'Colombia',
-      'care_code' => 'CO'),
-    'CR' => array(
+      'care_code' => 'CO',
+    ],
+    'CR' => [
       'country' => 'Costa Rica',
-      'care_code' => 'CR'),
-    'CU' => array(
+      'care_code' => 'CR',
+    ],
+    'CU' => [
       'country' => 'Cuba',
-      'care_code' => 'C'),
-    'CV' => array(
+      'care_code' => 'C',
+    ],
+    'CV' => [
       'country' => 'Cabo Verde',
-      'care_code' => ''),
-    'CW' => array(
+      'care_code' => '',
+    ],
+    'CW' => [
       'country' => 'Curaçao',
-      'care_code' => ''),
-    'CX' => array(
+      'care_code' => '',
+    ],
+    'CX' => [
       'country' => 'Christmas Island',
-      'care_code' => ''),
-    'CY' => array(
+      'care_code' => '',
+    ],
+    'CY' => [
       'country' => 'Cyprus',
-      'care_code' => 'CY'),
-    'CZ' => array(
+      'care_code' => 'CY',
+    ],
+    'CZ' => [
       'country' => 'Czech Republic',
-      'care_code' => 'CZ'),
-    'DE' => array(
+      'care_code' => 'CZ',
+    ],
+    'DE' => [
       'country' => 'Germany',
-      'care_code' => 'D'),
-    'DJ' => array(
+      'care_code' => 'D',
+    ],
+    'DJ' => [
       'country' => 'Djibouti',
-      'care_code' => 'DJI'),
-    'DK' => array(
+      'care_code' => 'DJI',
+    ],
+    'DK' => [
       'country' => 'Denmark',
-      'care_code' => 'DK'),
-    'DM' => array(
+      'care_code' => 'DK',
+    ],
+    'DM' => [
       'country' => 'Dominica',
-      'care_code' => 'WD'),
-    'DO' => array(
+      'care_code' => 'WD',
+    ],
+    'DO' => [
       'country' => 'Dominican Republic',
-      'care_code' => 'DOM'),
-    'DZ' => array(
+      'care_code' => 'DOM',
+    ],
+    'DZ' => [
       'country' => 'Algeria',
-      'care_code' => 'DZ'),
-    'EC' => array(
+      'care_code' => 'DZ',
+    ],
+    'EC' => [
       'country' => 'Ecuador',
-      'care_code' => 'EC'),
-    'EE' => array(
+      'care_code' => 'EC',
+    ],
+    'EE' => [
       'country' => 'Estonia',
-      'care_code' => 'EST'),
-    'EG' => array(
+      'care_code' => 'EST',
+    ],
+    'EG' => [
       'country' => 'Egypt',
-      'care_code' => 'ET'),
-    'EH' => array(
+      'care_code' => 'ET',
+    ],
+    'EH' => [
       'country' => 'Western Sahara',
-      'care_code' => 'WSA'),
-    'ER' => array(
+      'care_code' => 'WSA',
+    ],
+    'ER' => [
       'country' => 'Eritrea',
-      'care_code' => 'ER'),
-    'ES' => array(
+      'care_code' => 'ER',
+    ],
+    'ES' => [
       'country' => 'Spain',
-      'care_code' => 'E'),
-    'ET' => array(
+      'care_code' => 'E',
+    ],
+    'ET' => [
       'country' => 'Ethiopia',
-      'care_code' => 'ETH'),
-    'FI' => array(
+      'care_code' => 'ETH',
+    ],
+    'FI' => [
       'country' => 'Finland',
-      'care_code' => 'FIN'),
-    'FJ' => array(
+      'care_code' => 'FIN',
+    ],
+    'FJ' => [
       'country' => 'Fiji',
-      'care_code' => 'FJI'),
-    'FK' => array(
+      'care_code' => 'FJI',
+    ],
+    'FK' => [
       'country' => 'Falkland Islands (Malvinas)',
-      'care_code' => ''),
-    'FM' => array(
+      'care_code' => '',
+    ],
+    'FM' => [
       'country' => 'Micronesia',
-      'care_code' => ''),
-    'FO' => array(
+      'care_code' => '',
+    ],
+    'FO' => [
       'country' => 'Faroe Islands',
-      'care_code' => 'FO'),
-    'FR' => array(
+      'care_code' => 'FO',
+    ],
+    'FR' => [
       'country' => 'France',
-      'care_code' => 'F'),
-    'GA' => array(
+      'care_code' => 'F',
+    ],
+    'GA' => [
       'country' => 'Gabon',
-      'care_code' => 'G'),
-    'GB' => array(
+      'care_code' => 'G',
+    ],
+    'GB' => [
       'country' => 'United Kingdom',
-      'care_code' => 'UK'),
-    'GD' => array(
+      'care_code' => 'UK',
+    ],
+    'GD' => [
       'country' => 'Grenada',
-      'care_code' => 'WG'),
-    'GE' => array(
+      'care_code' => 'WG',
+    ],
+    'GE' => [
       'country' => 'Georgia',
-      'care_code' => 'GE'),
-    'GF' => array(
+      'care_code' => 'GE',
+    ],
+    'GF' => [
       'country' => 'French Guiana',
-      'care_code' => ''),
-    'GG' => array(
+      'care_code' => '',
+    ],
+    'GG' => [
       'country' => 'Guernsey',
-      'care_code' => 'GBG'),
-    'GH' => array(
+      'care_code' => 'GBG',
+    ],
+    'GH' => [
       'country' => 'Ghana',
-      'care_code' => 'GH'),
-    'GI' => array(
+      'care_code' => 'GH',
+    ],
+    'GI' => [
       'country' => 'Gibraltar',
-      'care_code' => 'GBZ'),
-    'GL' => array(
+      'care_code' => 'GBZ',
+    ],
+    'GL' => [
       'country' => 'Greenland',
-      'care_code' => 'KN'),
-    'GM' => array(
+      'care_code' => 'KN',
+    ],
+    'GM' => [
       'country' => 'Gambia',
-      'care_code' => 'WAG'),
-    'GN' => array(
+      'care_code' => 'WAG',
+    ],
+    'GN' => [
       'country' => 'Guinea',
-      'care_code' => 'RG'),
-    'GP' => array(
+      'care_code' => 'RG',
+    ],
+    'GP' => [
       'country' => 'Guadeloupe',
-      'care_code' => ''),
-    'GQ' => array(
+      'care_code' => '',
+    ],
+    'GQ' => [
       'country' => 'Equatorial Guinea',
-      'care_code' => 'GQ'),
-    'GR' => array(
+      'care_code' => 'GQ',
+    ],
+    'GR' => [
       'country' => 'Greece',
-      'care_code' => 'GR'),
-    'GS' => array(
+      'care_code' => 'GR',
+    ],
+    'GS' => [
       'country' => 'South Georgia and the South Sandwich Islands',
-      'care_code' => ''),
-    'GT' => array(
+      'care_code' => '',
+    ],
+    'GT' => [
       'country' => 'Guatemala',
-      'care_code' => 'GCA'),
-    'GU' => array(
+      'care_code' => 'GCA',
+    ],
+    'GU' => [
       'country' => 'Guam',
-      'care_code' => ''),
-    'GW' => array(
+      'care_code' => '',
+    ],
+    'GW' => [
       'country' => 'Guinea-Bissau',
-      'care_code' => ''),
-    'GY' => array(
+      'care_code' => '',
+    ],
+    'GY' => [
       'country' => 'Guyana',
-      'care_code' => 'GUY'),
-    'HK' => array(
+      'care_code' => 'GUY',
+    ],
+    'HK' => [
       'country' => 'Hong Kong',
-      'care_code' => 'HK'),
-    'HM' => array(
+      'care_code' => 'HK',
+    ],
+    'HM' => [
       'country' => 'Heard Island and McDonald Islands',
-      'care_code' => ''),
-    'HN' => array(
+      'care_code' => '',
+    ],
+    'HN' => [
       'country' => 'Honduras',
-      'care_code' => 'HN'),
-    'HR' => array(
+      'care_code' => 'HN',
+    ],
+    'HR' => [
       'country' => 'Croatia',
-      'care_code' => 'HR'),
-    'HT' => array(
+      'care_code' => 'HR',
+    ],
+    'HT' => [
       'country' => 'Haiti',
-      'care_code' => 'RH'),
-    'HU' => array(
+      'care_code' => 'RH',
+    ],
+    'HU' => [
       'country' => 'Hungary',
-      'care_code' => 'H'),
-    'ID' => array(
+      'care_code' => 'H',
+    ],
+    'ID' => [
       'country' => 'Indonesia',
-      'care_code' => 'RI'),
-    'IE' => array(
+      'care_code' => 'RI',
+    ],
+    'IE' => [
       'country' => 'Ireland',
-      'care_code' => 'IRL'),
-    'IL' => array(
+      'care_code' => 'IRL',
+    ],
+    'IL' => [
       'country' => 'Israel',
-      'care_code' => 'IL'),
-    'IM' => array(
+      'care_code' => 'IL',
+    ],
+    'IM' => [
       'country' => 'Isle of Man',
-      'care_code' => 'GBM'),
-    'IN' => array(
+      'care_code' => 'GBM',
+    ],
+    'IN' => [
       'country' => 'India',
-      'care_code' => 'IND'),
-    'IO' => array(
+      'care_code' => 'IND',
+    ],
+    'IO' => [
       'country' => 'British Indian Ocean Territory',
-      'care_code' => ''),
-    'IQ' => array(
+      'care_code' => '',
+    ],
+    'IQ' => [
       'country' => 'Iraq',
-      'care_code' => 'IRQ'),
-    'IR' => array(
+      'care_code' => 'IRQ',
+    ],
+    'IR' => [
       'country' => 'Iran',
-      'care_code' => 'IR'),
-    'IS' => array(
+      'care_code' => 'IR',
+    ],
+    'IS' => [
       'country' => 'Iceland',
-      'care_code' => 'IS'),
-    'IT' => array(
+      'care_code' => 'IS',
+    ],
+    'IT' => [
       'country' => 'Italy',
-      'care_code' => 'I'),
-    'JE' => array(
+      'care_code' => 'I',
+    ],
+    'JE' => [
       'country' => 'Jersey',
-      'care_code' => 'GBJ'),
-    'JM' => array(
+      'care_code' => 'GBJ',
+    ],
+    'JM' => [
       'country' => 'Jamaica',
-      'care_code' => 'JA'),
-    'JO' => array(
+      'care_code' => 'JA',
+    ],
+    'JO' => [
       'country' => 'Jordan',
-      'care_code' => 'HKJ'),
-    'JP' => array(
+      'care_code' => 'HKJ',
+    ],
+    'JP' => [
       'country' => 'Japan',
-      'care_code' => 'J'),
-    'KE' => array(
+      'care_code' => 'J',
+    ],
+    'KE' => [
       'country' => 'Kenya',
-      'care_code' => 'EAK'),
-    'KG' => array(
+      'care_code' => 'EAK',
+    ],
+    'KG' => [
       'country' => 'Kyrgyzstan',
-      'care_code' => 'KS'),
-    'KH' => array(
+      'care_code' => 'KS',
+    ],
+    'KH' => [
       'country' => 'Cambodia',
-      'care_code' => 'K'),
-    'KI' => array(
+      'care_code' => 'K',
+    ],
+    'KI' => [
       'country' => 'Kiribati',
-      'care_code' => 'KIR'),
-    'KM' => array(
+      'care_code' => 'KIR',
+    ],
+    'KM' => [
       'country' => 'Comoros',
-      'care_code' => 'COM'),
-    'KN' => array(
+      'care_code' => 'COM',
+    ],
+    'KN' => [
       'country' => 'Saint Kitts and Nevis',
-      'care_code' => 'KAN'),
-    'KP' => array(
+      'care_code' => 'KAN',
+    ],
+    'KP' => [
       'country' => 'Korea',
-      'care_code' => ''),
-    'KR' => array(
+      'care_code' => '',
+    ],
+    'KR' => [
       'country' => 'Korea',
-      'care_code' => ''),
-    'KW' => array(
+      'care_code' => '',
+    ],
+    'KW' => [
       'country' => 'Kuwait',
-      'care_code' => 'KWT'),
-    'KY' => array(
+      'care_code' => 'KWT',
+    ],
+    'KY' => [
       'country' => 'Cayman Islands',
-      'care_code' => ''),
-    'KZ' => array(
+      'care_code' => '',
+    ],
+    'KZ' => [
       'country' => 'Kazakhstan',
-      'care_code' => 'KZ'),
-    'LA' => array(
+      'care_code' => 'KZ',
+    ],
+    'LA' => [
       'country' => 'Lao People\'s Democratic Republic',
-      'care_code' => ''),
-    'LB' => array(
+      'care_code' => '',
+    ],
+    'LB' => [
       'country' => 'Lebanon',
-      'care_code' => 'RL'),
-    'LC' => array(
+      'care_code' => 'RL',
+    ],
+    'LC' => [
       'country' => 'Saint Lucia',
-      'care_code' => 'WL'),
-    'LI' => array(
+      'care_code' => 'WL',
+    ],
+    'LI' => [
       'country' => 'Liechtenstein',
-      'care_code' => 'FL'),
-    'LK' => array(
+      'care_code' => 'FL',
+    ],
+    'LK' => [
       'country' => 'Sri Lanka',
-      'care_code' => 'CL'),
-    'LR' => array(
+      'care_code' => 'CL',
+    ],
+    'LR' => [
       'country' => 'Liberia',
-      'care_code' => 'LB'),
-    'LS' => array(
+      'care_code' => 'LB',
+    ],
+    'LS' => [
       'country' => 'Lesotho',
-      'care_code' => 'LS'),
-    'LT' => array(
+      'care_code' => 'LS',
+    ],
+    'LT' => [
       'country' => 'Lithuania',
-      'care_code' => 'LT'),
-    'LU' => array(
+      'care_code' => 'LT',
+    ],
+    'LU' => [
       'country' => 'Luxembourg',
-      'care_code' => 'L'),
-    'LV' => array(
+      'care_code' => 'L',
+    ],
+    'LV' => [
       'country' => 'Latvia',
-      'care_code' => 'LV'),
-    'LY' => array(
+      'care_code' => 'LV',
+    ],
+    'LY' => [
       'country' => 'Libya',
-      'care_code' => 'LAR'),
-    'MA' => array(
+      'care_code' => 'LAR',
+    ],
+    'MA' => [
       'country' => 'Morocco',
-      'care_code' => 'MA'),
-    'MC' => array(
+      'care_code' => 'MA',
+    ],
+    'MC' => [
       'country' => 'Monaco',
-      'care_code' => 'MC'),
-    'MD' => array(
+      'care_code' => 'MC',
+    ],
+    'MD' => [
       'country' => 'Moldova',
-      'care_code' => 'MD'),
-    'ME' => array(
+      'care_code' => 'MD',
+    ],
+    'ME' => [
       'country' => 'Montenegro',
-      'care_code' => 'MNE'),
-    'MF' => array(
+      'care_code' => 'MNE',
+    ],
+    'MF' => [
       'country' => 'Saint Martin (French part)',
-      'care_code' => ''),
-    'MG' => array(
+      'care_code' => '',
+    ],
+    'MG' => [
       'country' => 'Madagascar',
-      'care_code' => 'RM'),
-    'MH' => array(
+      'care_code' => 'RM',
+    ],
+    'MH' => [
       'country' => 'Marshall Islands',
-      'care_code' => 'MH'),
-    'MK' => array(
+      'care_code' => 'MH',
+    ],
+    'MK' => [
       'country' => 'Macedonia',
-      'care_code' => 'MK'),
-    'ML' => array(
+      'care_code' => 'MK',
+    ],
+    'ML' => [
       'country' => 'Mali',
-      'care_code' => 'RMM'),
-    'MM' => array(
+      'care_code' => 'RMM',
+    ],
+    'MM' => [
       'country' => 'Myanmar',
-      'care_code' => 'BUR'),
-    'MN' => array(
+      'care_code' => 'BUR',
+    ],
+    'MN' => [
       'country' => 'Mongolia',
-      'care_code' => 'MGL'),
-    'MO' => array(
+      'care_code' => 'MGL',
+    ],
+    'MO' => [
       'country' => 'Macao',
-      'care_code' => ''),
-    'MP' => array(
+      'care_code' => '',
+    ],
+    'MP' => [
       'country' => 'Northern Mariana Islands',
-      'care_code' => ''),
-    'MQ' => array(
+      'care_code' => '',
+    ],
+    'MQ' => [
       'country' => 'Martinique',
-      'care_code' => ''),
-    'MR' => array(
+      'care_code' => '',
+    ],
+    'MR' => [
       'country' => 'Mauritania',
-      'care_code' => 'RIM'),
-    'MS' => array(
+      'care_code' => 'RIM',
+    ],
+    'MS' => [
       'country' => 'Montserrat',
-      'care_code' => ''),
-    'MT' => array(
+      'care_code' => '',
+    ],
+    'MT' => [
       'country' => 'Malta',
-      'care_code' => 'M'),
-    'MU' => array(
+      'care_code' => 'M',
+    ],
+    'MU' => [
       'country' => 'Mauritius',
-      'care_code' => 'MS'),
-    'MV' => array(
+      'care_code' => 'MS',
+    ],
+    'MV' => [
       'country' => 'Maldives',
-      'care_code' => 'MV'),
-    'MW' => array(
+      'care_code' => 'MV',
+    ],
+    'MW' => [
       'country' => 'Malawi',
-      'care_code' => 'MW'),
-    'MX' => array(
+      'care_code' => 'MW',
+    ],
+    'MX' => [
       'country' => 'Mexico',
-      'care_code' => 'MEX'),
-    'MY' => array(
+      'care_code' => 'MEX',
+    ],
+    'MY' => [
       'country' => 'Malaysia',
-      'care_code' => 'MAL'),
-    'MZ' => array(
+      'care_code' => 'MAL',
+    ],
+    'MZ' => [
       'country' => 'Mozambique',
-      'care_code' => 'MOC'),
-    'NA' => array(
+      'care_code' => 'MOC',
+    ],
+    'NA' => [
       'country' => 'Namibia',
-      'care_code' => 'NAM'),
-    'NC' => array(
+      'care_code' => 'NAM',
+    ],
+    'NC' => [
       'country' => 'New Caledonia',
-      'care_code' => 'NC'),
-    'NE' => array(
+      'care_code' => 'NC',
+    ],
+    'NE' => [
       'country' => 'Niger',
-      'care_code' => 'RN'),
-    'NF' => array(
+      'care_code' => 'RN',
+    ],
+    'NF' => [
       'country' => 'Norfolk Island',
-      'care_code' => ''),
-    'NG' => array(
+      'care_code' => '',
+    ],
+    'NG' => [
       'country' => 'Nigeria',
-      'care_code' => 'WAN'),
-    'NI' => array(
+      'care_code' => 'WAN',
+    ],
+    'NI' => [
       'country' => 'Nicaragua',
-      'care_code' => 'NIC'),
-    'NL' => array(
+      'care_code' => 'NIC',
+    ],
+    'NL' => [
       'country' => 'Netherlands',
-      'care_code' => 'NL'),
-    'NO' => array(
+      'care_code' => 'NL',
+    ],
+    'NO' => [
       'country' => 'Norway',
-      'care_code' => 'N'),
-    'NP' => array(
+      'care_code' => 'N',
+    ],
+    'NP' => [
       'country' => 'Nepal',
-      'care_code' => 'NEP'),
-    'NR' => array(
+      'care_code' => 'NEP',
+    ],
+    'NR' => [
       'country' => 'Nauru',
-      'care_code' => 'NAU'),
-    'NU' => array(
+      'care_code' => 'NAU',
+    ],
+    'NU' => [
       'country' => 'Niue',
-      'care_code' => ''),
-    'NZ' => array(
+      'care_code' => '',
+    ],
+    'NZ' => [
       'country' => 'New Zealand',
-      'care_code' => 'NZ'),
-    'OM' => array(
+      'care_code' => 'NZ',
+    ],
+    'OM' => [
       'country' => 'Oman',
-      'care_code' => 'OM'),
-    'PA' => array(
+      'care_code' => 'OM',
+    ],
+    'PA' => [
       'country' => 'Panama',
-      'care_code' => 'PA'),
-    'PE' => array(
+      'care_code' => 'PA',
+    ],
+    'PE' => [
       'country' => 'Peru',
-      'care_code' => 'PE'),
-    'PF' => array(
+      'care_code' => 'PE',
+    ],
+    'PF' => [
       'country' => 'French Polynesia',
-      'care_code' => ''),
-    'PG' => array(
+      'care_code' => '',
+    ],
+    'PG' => [
       'country' => 'Papua New Guinea',
-      'care_code' => 'PNG'),
-    'PH' => array(
+      'care_code' => 'PNG',
+    ],
+    'PH' => [
       'country' => 'Philippines',
-      'care_code' => 'RP'),
-    'PK' => array(
+      'care_code' => 'RP',
+    ],
+    'PK' => [
       'country' => 'Pakistan',
-      'care_code' => 'PK'),
-    'PL' => array(
+      'care_code' => 'PK',
+    ],
+    'PL' => [
       'country' => 'Poland',
-      'care_code' => 'PL'),
-    'PM' => array(
+      'care_code' => 'PL',
+    ],
+    'PM' => [
       'country' => 'Saint Pierre and Miquelon',
-      'care_code' => ''),
-    'PN' => array(
+      'care_code' => '',
+    ],
+    'PN' => [
       'country' => 'Pitcairn',
-      'care_code' => ''),
-    'PR' => array(
+      'care_code' => '',
+    ],
+    'PR' => [
       'country' => 'Puerto Rico',
-      'care_code' => 'PR'),
-    'PS' => array(
+      'care_code' => 'PR',
+    ],
+    'PS' => [
       'country' => 'Palestine',
-      'care_code' => 'PS'),
-    'PT' => array(
+      'care_code' => 'PS',
+    ],
+    'PT' => [
       'country' => 'Portugal',
-      'care_code' => 'P'),
-    'PW' => array(
+      'care_code' => 'P',
+    ],
+    'PW' => [
       'country' => 'Palau',
-      'care_code' => 'PAL'),
-    'PY' => array(
+      'care_code' => 'PAL',
+    ],
+    'PY' => [
       'country' => 'Paraguay',
-      'care_code' => 'PY'),
-    'QA' => array(
+      'care_code' => 'PY',
+    ],
+    'QA' => [
       'country' => 'Qatar',
-      'care_code' => 'Q'),
-    'RE' => array(
+      'care_code' => 'Q',
+    ],
+    'RE' => [
       'country' => 'Réunion',
-      'care_code' => ''),
-    'RO' => array(
+      'care_code' => '',
+    ],
+    'RO' => [
       'country' => 'Romania',
-      'care_code' => 'RO'),
-    'RS' => array(
+      'care_code' => 'RO',
+    ],
+    'RS' => [
       'country' => 'Serbia',
-      'care_code' => 'SRB'),
-    'RU' => array(
+      'care_code' => 'SRB',
+    ],
+    'RU' => [
       'country' => 'Russian Federation',
-      'care_code' => 'RUS'),
-    'RW' => array(
+      'care_code' => 'RUS',
+    ],
+    'RW' => [
       'country' => 'Rwanda',
-      'care_code' => 'RWA'),
-    'SA' => array(
+      'care_code' => 'RWA',
+    ],
+    'SA' => [
       'country' => 'Saudi Arabia',
-      'care_code' => 'KSA'),
-    'SB' => array(
+      'care_code' => 'KSA',
+    ],
+    'SB' => [
       'country' => 'Solomon Islands',
-      'care_code' => 'SOL'),
-    'SC' => array(
+      'care_code' => 'SOL',
+    ],
+    'SC' => [
       'country' => 'Seychelles',
-      'care_code' => 'SY'),
-    'SD' => array(
+      'care_code' => 'SY',
+    ],
+    'SD' => [
       'country' => 'Sudan',
-      'care_code' => 'SUD'),
-    'SE' => array(
+      'care_code' => 'SUD',
+    ],
+    'SE' => [
       'country' => 'Sweden',
-      'care_code' => 'S'),
-    'SG' => array(
+      'care_code' => 'S',
+    ],
+    'SG' => [
       'country' => 'Singapore',
-      'care_code' => 'SGP'),
-    'SH' => array(
+      'care_code' => 'SGP',
+    ],
+    'SH' => [
       'country' => 'Saint Helena',
-      'care_code' => ''),
-    'SI' => array(
+      'care_code' => '',
+    ],
+    'SI' => [
       'country' => 'Slovenia',
-      'care_code' => 'SLO'),
-    'SJ' => array(
+      'care_code' => 'SLO',
+    ],
+    'SJ' => [
       'country' => 'Svalbard and Jan Mayen',
-      'care_code' => ''),
-    'SK' => array(
+      'care_code' => '',
+    ],
+    'SK' => [
       'country' => 'Slovakia',
-      'care_code' => 'SK'),
-    'SL' => array(
+      'care_code' => 'SK',
+    ],
+    'SL' => [
       'country' => 'Sierra Leone',
-      'care_code' => 'SLE'),
-    'SM' => array(
+      'care_code' => 'SLE',
+    ],
+    'SM' => [
       'country' => 'San Marino',
-      'care_code' => 'RSM'),
-    'SN' => array(
+      'care_code' => 'RSM',
+    ],
+    'SN' => [
       'country' => 'Senegal',
-      'care_code' => 'SN'),
-    'SO' => array(
+      'care_code' => 'SN',
+    ],
+    'SO' => [
       'country' => 'Somalia',
-      'care_code' => 'SO'),
-    'SR' => array(
+      'care_code' => 'SO',
+    ],
+    'SR' => [
       'country' => 'Suriname',
-      'care_code' => 'SME'),
-    'SS' => array(
+      'care_code' => 'SME',
+    ],
+    'SS' => [
       'country' => 'South Sudan',
-      'care_code' => ''),
-    'ST' => array(
+      'care_code' => '',
+    ],
+    'ST' => [
       'country' => 'Sao Tome and Principe',
-      'care_code' => ''),
-    'SV' => array(
+      'care_code' => '',
+    ],
+    'SV' => [
       'country' => 'El Salvador',
-      'care_code' => 'ES'),
-    'SX' => array(
+      'care_code' => 'ES',
+    ],
+    'SX' => [
       'country' => 'Sint Maarten (Dutch part)',
-      'care_code' => ''),
-    'SY' => array(
+      'care_code' => '',
+    ],
+    'SY' => [
       'country' => 'Syrian Arab Republic',
-      'care_code' => ''),
-    'SZ' => array(
+      'care_code' => '',
+    ],
+    'SZ' => [
       'country' => 'Swaziland',
-      'care_code' => 'SD'),
-    'TC' => array(
+      'care_code' => 'SD',
+    ],
+    'TC' => [
       'country' => 'Turks and Caicos Islands',
-      'care_code' => ''),
-    'TD' => array(
+      'care_code' => '',
+    ],
+    'TD' => [
       'country' => 'Chad',
-      'care_code' => ''),
-    'TF' => array(
+      'care_code' => '',
+    ],
+    'TF' => [
       'country' => 'French Southern Territories',
-      'care_code' => ''),
-    'TG' => array(
+      'care_code' => '',
+    ],
+    'TG' => [
       'country' => 'Togo',
-      'care_code' => 'TG'),
-    'TH' => array(
+      'care_code' => 'TG',
+    ],
+    'TH' => [
       'country' => 'Thailand',
-      'care_code' => 'T'),
-    'TJ' => array(
+      'care_code' => 'T',
+    ],
+    'TJ' => [
       'country' => 'Tajikistan',
-      'care_code' => 'TJ'),
-    'TK' => array(
+      'care_code' => 'TJ',
+    ],
+    'TK' => [
       'country' => 'Tokelau',
-      'care_code' => ''),
-    'TL' => array(
+      'care_code' => '',
+    ],
+    'TL' => [
       'country' => 'Timor-Leste',
-      'care_code' => 'TL'),
-    'TM' => array(
+      'care_code' => 'TL',
+    ],
+    'TM' => [
       'country' => 'Turkmenistan',
-      'care_code' => 'TM'),
-    'TN' => array(
+      'care_code' => 'TM',
+    ],
+    'TN' => [
       'country' => 'Tunisia',
-      'care_code' => 'TN'),
-    'TO' => array(
+      'care_code' => 'TN',
+    ],
+    'TO' => [
       'country' => 'Tonga',
-      'care_code' => 'TO'),
-    'TR' => array(
+      'care_code' => 'TO',
+    ],
+    'TR' => [
       'country' => 'Turkey',
-      'care_code' => 'TR'),
-    'TT' => array(
+      'care_code' => 'TR',
+    ],
+    'TT' => [
       'country' => 'Trinidad and Tobago',
-      'care_code' => 'TT'),
-    'TV' => array(
+      'care_code' => 'TT',
+    ],
+    'TV' => [
       'country' => 'Tuvalu',
-      'care_code' => 'TUV'),
-    'TW' => array(
+      'care_code' => 'TUV',
+    ],
+    'TW' => [
       'country' => 'Taiwan',
-      'care_code' => 'RC'),
-    'TZ' => array(
+      'care_code' => 'RC',
+    ],
+    'TZ' => [
       'country' => 'Tanzania',
-      'care_code' => 'EAT'),
-    'UA' => array(
+      'care_code' => 'EAT',
+    ],
+    'UA' => [
       'country' => 'Ukraine',
-      'care_code' => 'UA'),
-    'UG' => array(
+      'care_code' => 'UA',
+    ],
+    'UG' => [
       'country' => 'Uganda',
-      'care_code' => 'EAU'),
-    'UM' => array(
+      'care_code' => 'EAU',
+    ],
+    'UM' => [
       'country' => 'United States Minor Outlying Islands',
-      'care_code' => ''),
-    'US' => array(
+      'care_code' => '',
+    ],
+    'US' => [
       'country' => 'United States',
-      'care_code' => 'USA'),
-    'UY' => array(
+      'care_code' => 'USA',
+    ],
+    'UY' => [
       'country' => 'Uruguay',
-      'care_code' => 'UY'),
-    'UZ' => array(
+      'care_code' => 'UY',
+    ],
+    'UZ' => [
       'country' => 'Uzbekistan',
-      'care_code' => 'UZ'),
-    'VA' => array(
+      'care_code' => 'UZ',
+    ],
+    'VA' => [
       'country' => 'Holy See (Vatican City State)',
-      'care_code' => ''),
-    'VC' => array(
+      'care_code' => '',
+    ],
+    'VC' => [
       'country' => 'Saint Vincent and the Grenadines',
-      'care_code' => 'WV'),
-    'VE' => array(
+      'care_code' => 'WV',
+    ],
+    'VE' => [
       'country' => 'Venezuela',
-      'care_code' => 'YV'),
-    'VG' => array(
+      'care_code' => 'YV',
+    ],
+    'VG' => [
       'country' => 'Virgin Islands',
-      'care_code' => 'BVI'),
-    'VI' => array(
+      'care_code' => 'BVI',
+    ],
+    'VI' => [
       'country' => 'Virgin Islands',
-      'care_code' => 'BVI'),
-    'VN' => array(
+      'care_code' => 'BVI',
+    ],
+    'VN' => [
       'country' => 'Vietnam',
-      'care_code' => 'VN'),
-    'VU' => array(
+      'care_code' => 'VN',
+    ],
+    'VU' => [
       'country' => 'Vanuatu',
-      'care_code' => 'VU'),
-    'WF' => array(
+      'care_code' => 'VU',
+    ],
+    'WF' => [
       'country' => 'Wallis and Futuna',
-      'care_code' => ''),
-    'WS' => array(
+      'care_code' => '',
+    ],
+    'WS' => [
       'country' => 'Samoa',
-      'care_code' => 'WS'),
-    'YE' => array(
+      'care_code' => 'WS',
+    ],
+    'YE' => [
       'country' => 'Yemen',
-      'care_code' => 'YAR'),
-    'YT' => array(
+      'care_code' => 'YAR',
+    ],
+    'YT' => [
       'country' => 'Mayotte',
-      'care_code' => ''),
-    'ZA' => array(
+      'care_code' => '',
+    ],
+    'ZA' => [
       'country' => 'South Africa',
-      'care_code' => 'ZA'),
-    'ZM' => array(
+      'care_code' => 'ZA',
+    ],
+    'ZM' => [
       'country' => 'Zambia',
-      'care_code' => 'Z'),
-    'ZW' => array(
+      'care_code' => 'Z',
+    ],
+    'ZW' => [
       'country' => 'Zimbabwe',
-      'care_code' => 'ZW'));
+      'care_code' => 'ZW',
+    ],
+  ];
 }

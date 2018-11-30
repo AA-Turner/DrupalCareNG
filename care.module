@@ -5,121 +5,136 @@
  * Utility functions to call CARE web services.
  */
 
+define('IGNORE_ERRORS', TRUE);
+
 /**
  * Implements hook_permission().
  */
 function care_permission() {
-  return array(
-    'administer care module' => array(
+  return [
+    'administer care module' => [
       'title' => t('Administer CARE module'),
       'description' => t('Configure how this site connects to CARE.'),
-      'restrict access' => TRUE));
-}
-
-/**
- * Implements hook_requirements().
- */
-function care_requirements($phase) {
-  $t = get_t();
-  if ($phase == 'runtime') {
-    $requirements['care_wsdl'] = array(
-      'title' => $t('CARE database WSDL url'),
-      'value' => variable_get('care_wsdl_url', '-'),
-      'severity' => REQUIREMENT_INFO,
-      'weight' => -1);
-  }
-  $requirements['care_requirements'] = array(
-    'title' => $t('CARE requirements'));
-  if (class_exists('SoapClient')) {
-    $requirements['care_requirements']['value'] = $t('PHP SOAP extension enabled.');
-  }
-  else {
-    $requirements['care_requirements']['value'] = $t('Please enable the PHP SOAP extension to use the CARE module.');
-    $requirements['care_requirements']['severity'] = REQUIREMENT_ERROR;
-  }
-  return $requirements;
+      'restrict access' => TRUE,
+    ],
+  ];
 }
 
 /**
  * Implements hook_menu().
  */
 function care_menu() {
-  $items['admin/config/services/care'] = array(
+  $items['admin/config/services/care'] = [
     'title' => 'CARE',
     'description' => 'Configure and test the connection to CARE.',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array(
-      'care_settings_form'),
+    'page arguments' => [
+      'care_settings_form',
+    ],
     'file' => 'care_settings_form.inc',
-    'access arguments' => array(
-      'administer care module'),
-    'type' => MENU_NORMAL_ITEM);
-  $items['admin/config/services/care/settings'] = array(
+    'access arguments' => [
+      'administer care module',
+    ],
+    'type' => MENU_NORMAL_ITEM,
+  ];
+  $items['admin/config/services/care/settings'] = [
     'title' => 'CARE settings',
     'description' => 'Configure the WDSL and documentation URLs for the CARE connection.',
     'type' => MENU_DEFAULT_LOCAL_TASK,
-    'weight' => -1);
-  $items['admin/config/services/care/call'] = array(
+    'weight' => -1,
+  ];
+  $items['admin/config/services/care/call'] = [
     'title' => 'Test CARE call',
     'description' => 'Manually make test CARE calls.',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array(
-      'care_call_form'),
+    'page arguments' => [
+      'care_call_form',
+    ],
     'file' => 'care_call_form.inc',
-    'access arguments' => array(
-      'administer care module'),
+    'access arguments' => [
+      'administer care module',
+    ],
     'type' => MENU_LOCAL_TASK,
-    'weight' => 90);
+    'weight' => 90,
+  ];
   return $items;
 }
 
 /**
- * Function to call CARE SOAP client with method name and associative array of data.
+ * Call CARE SOAP client with method name and associative array of data.
  *
- * This function handles and logs errors that occur at the SOAP level. It does not
- * handle or log any error conditions that are returned (without error) in the SOAP
- * call's result data.
+ * This function handles and logs errors that occur at the SOAP level, or for
+ * invalid CARE method calls. It also logs any CARE errors returned from valid
+ * calls, unless the $ignore_care_errors optional argument is set to
+ * IGNORE_ERRORS.
  *
- * @param $methodname The
- *          name of the SOAP method to call, e.g. "AddContact"
- * @param $data A
- *          PHP associative array of parameter data, e.g. array('Title' => 'Mr', 'Forenames' => 'Fred')
- * @param $typedata An
- *          optional CARE type and name for the method, if needed, e.g. array('pSelectDataType' =>
- *          'xcdtContactMembershipDetails')
- * @return SimpleXMLElement containg the result, or an object with an ErrorMessage in the case of any failure.
+ * @param string $methodname
+ *   The name of the SOAP method to call, e.g. "AddContact".
+ * @param array $data
+ *   A PHP associative array of parameter data, e.g.
+ *     array('Title' => 'Mr', 'Forenames' => 'Fred').
+ * @param array $typedata
+ *   An optional CARE type and name for the method, if needed, e.g.
+ *     array('pSelectDataType' => 'xcdtContactMembershipDetails')
+ * @param bool $ignore_care_errors
+ *   Set to TRUE if CARE errors should be ignored and not logged.
+ *
+ * @return SimpleXMLElement
+ *   Containg the result, or an object with an ErrorMessage in the case of any
+ *   failure.
  */
-function care_call_method($methodname, $data = array(), $typedata = NULL) {
+function care_call_method($methodname, array $data = [], array $typedata = NULL, $ignore_care_errors = FALSE) {
   // Store client object for later calls.
   static $client = NULL;
-  // Don't wait for connection to time out again if it previously failed for this web request.
+  $log_calls = variable_get('care_log_calls', 'none');
+  $log_results = variable_get('care_log_results', 'none');
+  // Don't wait for connection to time out again if it previously failed.
   static $connection_failed = FALSE;
   $resultxml = new SimpleXMLElement('<xml></xml>');
   if ($connection_failed) {
-    watchdog('care', 'Error: skipped CARE call as a previous call failed to connect', array(), WATCHDOG_ERROR);
+    watchdog('care', 'Error: skipped CARE call as a previous call failed to connect', [], WATCHDOG_ERROR);
     $resultxml->ErrorMessage = t('Error: skipped CARE call as a previous call failed to connect');
     return $resultxml;
   }
   // Create a SOAP client object for CARE if not already done.
   if (!$client) {
-    $service_address_url = variable_get('care_wsdl_url', 'http://127.0.0.1/careservices/dataaccess.asmx?WSDL');
-    $soap_options = array(
-      'wsdl_cache' => 'WSDL_CACHE_BOTH');
-    if (variable_get('care_log_results')) {
-      $soap_options += array(
-        'trace' => TRUE);
+    if (variable_get('care_database_to_use', 'test') == 'test') {
+      $service_address_url = variable_get('care_test_wsdl_url', 'https://test.example.com/careservices/dataaccess.asmx?WSDL');
+      $service_username = variable_get('care_test_ntlm_username', '');
+      $service_password = variable_get('care_test_ntlm_password', '');
+    }
+    else {
+      $service_address_url = variable_get('care_wsdl_url', 'https://www.example.com/careservices/dataaccess.asmx?WSDL');
+      $service_username = variable_get('care_ntlm_username', '');
+      $service_password = variable_get('care_ntlm_password', '');
+    }
+    $soap_options = [
+      'wsdl_cache' => 'WSDL_CACHE_NONE',
+      'user' => $service_username,
+      'password' => $service_password,
+    ];
+    if (variable_get('care_log_results') == 'full') {
+      $soap_options += [
+        'trace' => TRUE,
+      ];
     }
     try {
       if (class_exists('SoapClient')) {
-        $client = new SoapClient($service_address_url, $soap_options);
+        if ($service_username && $service_password) {
+          $client = new NtlmSoapClient($service_address_url, $soap_options);
+        }
+        else {
+          $client = new SoapClient($service_address_url, $soap_options);
+        }
       }
       else {
-        throw new Exception('SoapClient class does not exist.');
+        throw new RuntimeException('SoapClient class does not exist.');
       }
     }
     catch (Exception $e) {
-      watchdog('care', 'Error: !message', array(
-        '!message' => $e->getMessage()), WATCHDOG_ERROR);
+      watchdog('care', 'Error: @message', [
+        '@message' => $e->getMessage(),
+      ], WATCHDOG_ERROR);
       $connection_failed = TRUE;
       $resultxml->ErrorMessage = 'Failed to connect: ' . $e->getMessage();
       return $resultxml;
@@ -130,13 +145,15 @@ function care_call_method($methodname, $data = array(), $typedata = NULL) {
   // Add parameters with values as XML child elements.
   foreach ($data as $parameter => $value) {
     if ($parameter) {
-      $value = str_replace('&', '&amp;', $value); // addChild escapes "<" and ">" but not "&".
+      // addChild escapes "<" and ">" but not "&".
+      $value = str_replace('&', '&amp;', $value);
       $xml->addChild($parameter, $value);
     }
     else {
-      watchdog('care', 'Missing parameter name (PHP array key) for parameter for !method call. Data array: !data', array(
-        '!method' => $methodname,
-        '!data' => print_r($data, TRUE)), WATCHDOG_WARNING);
+      watchdog('care', 'Missing parameter name (PHP array key) for parameter for @method call. Data array: <pre>@data</pre>', [
+        '@method' => $methodname,
+        '@data' => print_r($data, TRUE),
+      ], WATCHDOG_WARNING);
     }
   }
 
@@ -146,58 +163,65 @@ function care_call_method($methodname, $data = array(), $typedata = NULL) {
       // Call typed care method, two arguments.
       $typetype = key($typedata);
       $typename = $typedata[$typetype];
-      if (variable_get('care_log_calls')) {
-        watchdog('care', '@method (type: @type) call: @params', array(
+      if ($log_calls != 'none') {
+        watchdog('care', '@method (@type) call: <pre>@params</pre>', [
           '@method' => $methodname,
           '@type' => $typename,
-          '@params' => _care_pretty_xml($xml)));
+          '@params' => _care_pretty_xml($xml, ($log_calls != 'full')),
+        ]);
       }
-      $result = $client->$methodname(array(
+      $result = $client->$methodname([
         $typetype => $typename,
-        'pXMLParams' => $xml->asXML()));
+        'pXMLParams' => $xml->asXML(),
+      ]);
       // Return the result as a new SimpleXML element.
       $resultname = $methodname . 'Result';
       $resultxml = new SimpleXMLElement($result->$resultname);
-      if (variable_get('care_log_results')) {
-        watchdog('care', '@method (type: @type) <h2>Headers</h2><pre>@headers</pre><h2>Request</h2><pre>@request</pre><h2>Result</h2><pre>@result</pre>', array(
+      if ($log_results != 'none') {
+        watchdog('care', '@method (@type) <pre>@result</pre>', [
           '@method' => $methodname,
           '@type' => $typename,
-          '@headers' => $client->__getLastRequestHeaders(),
-          '@request' => $client->__getLastRequest(),
-          '@result' => _care_pretty_xml($resultxml)));
+          '@result' => _care_pretty_xml($resultxml, ($log_results != 'full')),
+        ]);
       }
     }
     else {
       // Call simple care method, one argument.
-      if (variable_get('care_log_calls')) {
-        watchdog('care', '@method call: @params', array(
+      if ($log_calls != 'none') {
+        watchdog('care', '@method call: <pre>@params</pre>', [
           '@method' => $methodname,
-          '@params' => _care_pretty_xml($xml)));
+          '@params' => _care_pretty_xml($xml, ($log_calls != 'full')),
+        ]);
       }
-      $result = $client->$methodname(array(
-        'pXMLParams' => $xml->asXML()));
+      $result = $client->$methodname([
+        'pXMLParams' => $xml->asXML(),
+      ]);
       // Return the result as a new SimpleXML element.
       $resultname = $methodname . 'Result';
       $resultxml = new SimpleXMLElement($result->$resultname);
-      if (variable_get('care_log_results')) {
-        watchdog('care', '@method result: @result', array(
+      if ($log_results != 'none') {
+        watchdog('care', '@method result: <pre>@result</pre>', [
           '@method' => $methodname,
-          '@result' => _care_pretty_xml($resultxml)));
+          '@result' => _care_pretty_xml($resultxml, ($log_results != 'full')),
+        ]);
       }
     }
   }
-  catch (Exception $e) {
-    watchdog('care', 'CARE Error: !message', array(
-      '!message' => $e->getMessage()), WATCHDOG_ERROR);
+  catch
+  (Exception $e) {
+    watchdog('care', 'CARE Error: @message', [
+      '@message' => $e->getMessage(),
+    ], WATCHDOG_ERROR);
     $resultxml->ErrorMessage = $e->getMessage();
     return $resultxml;
   }
 
   // Log any CARE error results.
-  if (isset($resultxml->ErrorMessage)) {
-    watchdog('care', '@method Error: @message', array(
+  if (!$ignore_care_errors && isset($resultxml->ErrorMessage)) {
+    watchdog('care', '@method Error: @message', [
       '@method' => $methodname,
-      '@message' => (string)$resultxml->ErrorMessage), WATCHDOG_ERROR);
+      '@message' => (string) $resultxml->ErrorMessage,
+    ], WATCHDOG_ERROR);
   }
 
   return $resultxml;
@@ -206,18 +230,74 @@ function care_call_method($methodname, $data = array(), $typedata = NULL) {
 /**
  * Private function to pretty-print XML from a SimpleXML object.
  */
-function _care_pretty_xml($xml) {
+function _care_pretty_xml(SimpleXMLElement $xml, $redact = TRUE) {
+  if ($redact) {
+    $xml = clone($xml);
+    _care_redact_xml_tree($xml);
+  }
   if (extension_loaded('dom')) {
     $doc = new DOMDocument('1.0');
     $doc->formatOutput = TRUE;
     $domnode = dom_import_simplexml($xml);
     $domnode = $doc->importNode($domnode, TRUE);
     $domnode = $doc->appendChild($domnode);
-    $xml = $doc->saveXML();
-    return $xml;
+    $output = $doc->saveXML();
   }
   else {
-    return $xml->asXML();
+    $output = $xml->asXML();
+  }
+  return $output;
+}
+
+function _care_redact_xml_tree($xml_node) {
+  foreach ($xml_node->children() as $child) {
+    _care_redact_xml_tree($child);
+  }
+  $obfuscate_fields = [
+    'AddressNumber',
+    'ContactNumber',
+    'ContactPositionNumber',
+    'DefaultContactNumber',
+    'MemberNumber',
+    'MembershipNumber',
+    'OrganisationNumber',
+    'ParentNumber',
+    'PaymentPlanNumber',
+  ];
+  foreach ($obfuscate_fields as $field_name) {
+    if (isset($xml_node->$field_name) && (string) $xml_node->$field_name != '') {
+      $xml_node->$field_name = substr($xml_node->$field_name, 0, -5) . 'xxxx' . substr($xml_node->$field_name, -1);
+    }
+  }
+  $redact_fields = [
+    'Address',
+    'AddressLine',
+    'AddressLine1',
+    'AddressLine2',
+    'AddressLine3',
+    'AddressMultiLine',
+    'ContactName',
+    'CurrentAddressLine',
+    'CurrentAddressMultiLine',
+    'DateOfBirth',
+    'DefaultContactName',
+    'Forenames',
+    'HouseName',
+    'InformalSalutation',
+    'LabelName',
+    'Name',
+    'Number',
+    'OrganisationName',
+    'Postcode',
+    'PreferredForename',
+    'Salutation',
+    'Surname',
+    'TownAddressLine',
+  ];
+  foreach ($redact_fields as $field_name) {
+    if (isset($xml_node->$field_name) && (string) $xml_node->$field_name != '') {
+      $xml_node->$field_name = '--redacted--';
+    }
   }
 }
 
@@ -228,12 +308,11 @@ function care_iso3166_to_country($iso_code) {
   $iso_code = strtoupper($iso_code);
   module_load_include('inc', 'care', 'iso_country_mapping');
   $country_map = _care_country_map();
-  if (array_key_exists($iso_code, $country_map) and $country_map[$iso_code]['care_code'] != '') {
-    return $country_map[$iso_code]['care_code'];
+  $care_code = $iso_code;
+  if (array_key_exists($iso_code, $country_map) && $country_map[$iso_code]['care_code'] != '') {
+    $care_code = $country_map[$iso_code]['care_code'];
   }
-  else {
-    return $iso_code;
-  }
+  return $care_code;
 }
 
 /**

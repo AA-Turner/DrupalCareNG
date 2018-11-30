@@ -21,89 +21,123 @@ function care_call_form($form, &$form_state) {
   }
   $doc_root = variable_get('care_doc_root', 'http://127.0.0.1/careservices/documentation');
 
-  $form['intro'] = array(
+  $form['intro'] = [
     '#prefix' => '<p>',
-    '#markup' => t('Use this form to test CARE calls. Refer to the !documentation for details of the required call types and parameters.', array(
-      '!documentation' => l(t('CARE API documentation'), $doc_root . '/WEBServicesSummary.htm'))),
-    '#suffix' => '</p>');
+    '#markup' => t('Use this form to test CARE calls. Refer to the !documentation for details of the required call types and parameters.', [
+      '!documentation' => l(t('CARE API documentation'), $doc_root . '/WEBServicesSummary.htm'),
+    ]),
+    '#suffix' => '</p>',
+  ];
 
   if (isset($form_state['care_call_result'])) {
-    $form['care_call_result_display'] = array(
+    $form['care_call_result_display'] = [
       '#title' => t('CARE call result'),
       '#type' => 'textarea',
       '#rows' => 20,
-      '#attributes' => array(
-        'class' => array(
-          'carexmlresult')),
-      '#value' => $form_state['care_call_result']);
+      '#attributes' => [
+        'class' => [
+          'carexmlresult',
+        ],
+      ],
+      '#value' => $form_state['care_call_result'],
+    ];
   }
 
-  $form['method'] = array(
+  $form['method'] = [
     '#title' => t('Call Method'),
     '#type' => 'radios',
-    '#options' => array(
-      'SelectContactData' => t('SelectContactData (!doc)', array(
-        '!doc' => l(t('Documentation'), $doc_root . '/SelectContactData.htm'))),
-      'GetLookupData' => t('GetLookupData (!doc)', array(
-        '!doc' => l(t('Documentation'), $doc_root . '/GetLookupData.htm'))),
-      'FindContacts' => t('FindContacts (!doc)', array(
-        '!doc' => l(t('Documentation'), $doc_root . '/FindContacts.htm'))),
-      'FindMembers' => t('FindMembers (!doc)', array(
-        '!doc' => l(t('Documentation'), $doc_root . '/FindMembers.htm'))),
-      'other' => t('Other')),
-    '#default_value' => $form_state['values']['method']);
-  $form['selectcontactdata_type'] = array(
+    '#options' => [
+      'SelectContactData' => t('SelectContactData (!doc)', [
+        '!doc' => l(t('Documentation'), $doc_root . '/SelectContactData.htm'),
+      ]),
+      'GetLookupData' => t('GetLookupData (!doc)', [
+        '!doc' => l(t('Documentation'), $doc_root . '/GetLookupData.htm'),
+      ]),
+      'FindContacts' => t('FindContacts (!doc)', [
+        '!doc' => l(t('Documentation'), $doc_root . '/FindContacts.htm'),
+      ]),
+      'FindMembers' => t('FindMembers (!doc)', [
+        '!doc' => l(t('Documentation'), $doc_root . '/FindMembers.htm'),
+      ]),
+      'other' => t('Other'),
+    ],
+    '#default_value' => $form_state['values']['method'],
+  ];
+  $form['selectcontactdata_type'] = [
     '#title' => t('SelectDataType'),
     '#type' => 'textfield',
     '#default_value' => $form_state['values']['selectcontactdata_type'],
-    '#states' => array(
-      'visible' => array(
-        ':input[name="method"]' => array(
-          'value' => 'SelectContactData'))));
-  $form['getlookupdata_type'] = array(
+    '#states' => [
+      'visible' => [
+        ':input[name="method"]' => [
+          'value' => 'SelectContactData',
+        ],
+      ],
+    ],
+  ];
+  $form['getlookupdata_type'] = [
     '#title' => t('LookupDataType'),
     '#type' => 'textfield',
     '#default_value' => $form_state['values']['getlookupdata_type'],
-    '#states' => array(
-      'visible' => array(
-        ':input[name="method"]' => array(
-          'value' => 'GetLookupData'))));
-  $form['other_method'] = array(
+    '#states' => [
+      'visible' => [
+        ':input[name="method"]' => [
+          'value' => 'GetLookupData',
+        ],
+      ],
+    ],
+  ];
+  $form['other_method'] = [
     '#title' => t('Method Name'),
     '#type' => 'textfield',
     '#default_value' => $form_state['values']['other_method'],
-    '#states' => array(
-      'visible' => array(
-        ':input[name="method"]' => array(
-          'value' => 'other'))));
-  $form['other_type_name'] = array(
+    '#states' => [
+      'visible' => [
+        ':input[name="method"]' => [
+          'value' => 'other',
+        ],
+      ],
+    ],
+  ];
+  $form['other_type_name'] = [
     '#title' => t('Data Type Name'),
     '#type' => 'radios',
-    '#options' => array(
+    '#options' => [
       'pSelectDataType' => 'SelectDataType',
-      'pDataType' => 'DataType'),
+      'pDataType' => 'DataType',
+    ],
     '#description' => t('See documentation for the specific method, but this is usually SelectDataType.'),
     '#default_value' => $form_state['values']['other_type_name'],
-    '#states' => array(
-      'visible' => array(
-        ':input[name="method"]' => array(
-          'value' => 'other'))));
-  $form['other_type_value'] = array(
+    '#states' => [
+      'visible' => [
+        ':input[name="method"]' => [
+          'value' => 'other',
+        ],
+      ],
+    ],
+  ];
+  $form['other_type_value'] = [
     '#title' => t('Data Type Value'),
     '#type' => 'textfield',
     '#default_value' => $form_state['values']['other_type_value'],
-    '#states' => array(
-      'visible' => array(
-        ':input[name="method"]' => array(
-          'value' => 'other'))));
-  $form['parameters'] = array(
+    '#states' => [
+      'visible' => [
+        ':input[name="method"]' => [
+          'value' => 'other',
+        ],
+      ],
+    ],
+  ];
+  $form['parameters'] = [
     '#title' => t('XMLParameters'),
     '#description' => t('Enter parameters and values one per line, separated by a colon.'),
     '#type' => 'textarea',
-    '#default_value' => $form_state['values']['parameters']);
-  $form['submit'] = array(
+    '#default_value' => $form_state['values']['parameters'],
+  ];
+  $form['submit'] = [
     '#type' => 'submit',
-    '#value' => t('Call CARE'));
+    '#value' => t('Call CARE'),
+  ];
 
   return $form;
 }
@@ -114,7 +148,7 @@ function care_call_form($form, &$form_state) {
 function care_call_form_submit($form, &$form_state) {
   $method = $form_state['values']['method'];
   $lines = preg_split("/\n/", $form_state['values']['parameters']);
-  $data = array();
+  $data = [];
   $typedata = NULL;
   // Sort out parameter data.
   foreach ($lines as $line) {
@@ -126,18 +160,23 @@ function care_call_form_submit($form, &$form_state) {
   // Sort out call type data.
   switch ($method) {
     case 'SelectContactData':
-      $typedata = array(
-        'pSelectDataType' => $form_state['values']['selectcontactdata_type']);
+      $typedata = [
+        'pSelectDataType' => $form_state['values']['selectcontactdata_type'],
+      ];
       break;
+
     case 'GetLookupData':
-      $typedata = array(
-        'pLookupDataType' => $form_state['values']['getlookupdata_type']);
+      $typedata = [
+        'pLookupDataType' => $form_state['values']['getlookupdata_type'],
+      ];
       break;
+
     case 'other':
       $method = $form_state['values']['other_method'];
       if ($form_state['values']['other_type_name']) {
-        $typedata = array(
-          $form_state['values']['other_type_name'] => $form_state['values']['other_type_value']);
+        $typedata = [
+          $form_state['values']['other_type_name'] => $form_state['values']['other_type_value'],
+        ];
       }
       break;
   }
