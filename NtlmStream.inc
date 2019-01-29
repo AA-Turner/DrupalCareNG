@@ -151,7 +151,7 @@ class NtlmStream {
     curl_setopt($this->ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
     curl_setopt($this->ch, CURLOPT_HTTPAUTH, CURLAUTH_NTLM);
     curl_setopt($this->ch, CURLOPT_USERPWD, self::$user . ':' . self::$password);
-    curl_exec($this->ch);
+    $this->buffer = curl_exec($this->ch);
     $this->pos = 0;
   }
 }
