@@ -302,30 +302,37 @@ function _care_redact_xml_tree($xml_node) {
 }
 
 /**
- * Utility function to convert ISO 3166-1 alpha-2 codes to CARE country codes.
+ * Utility function to convert ISO 3166-1 codes to CARE country codes.
  */
 function care_iso3166_to_country($iso_code) {
-  $iso_code = strtoupper($iso_code);
-  module_load_include('inc', 'care', 'iso_country_mapping');
-  $country_map = _care_country_map();
-  $care_code = $iso_code;
-  if (array_key_exists($iso_code, $country_map) && $country_map[$iso_code]['care_code'] != '') {
-    $care_code = $country_map[$iso_code]['care_code'];
+  $care_code = strtoupper($iso_code);
+  $file = fopen(drupal_get_path('module','care') . '/iso_country_mapping.csv', 'r');
+  $header = fgetcsv($file);
+  $care_index = array_search('CARE_code', $header);
+  $iso_index = array_search('ISO' . strlen($iso_code), $header);
+  while (($line = fgetcsv($file)) !== FALSE) {
+    if ($line[$iso_index] == $iso_code) {
+      $care_code = $line[$care_index];
+    }
   }
+  fclose($file);
   return $care_code;
 }
 
 /**
- * Utility function to convert CARE country codes to ISO 3166-1 alpha-2 codes.
+ * Utility function to convert CARE country codes to ISO 3166-1 codes.
  */
-function care_country_to_iso3166($country_code) {
+function care_country_to_iso3166($country_code, $letters = 2) {
   $country_code = strtoupper($country_code);
-  module_load_include('inc', 'care', 'iso_country_mapping');
-  $country_map = _care_country_map();
-  foreach ($country_map as $iso_code => $data) {
-    if ($data['care_code'] == $country_code) {
-      return $iso_code;
+  $file = fopen(drupal_get_path('module','care') . '/iso_country_mapping.csv', 'r');
+  $header = fgetcsv($file);
+  $care_index = array_search('CARE_code', $header);
+  $iso_index = array_search('ISO' . $letters, $header);
+  while (($line = fgetcsv($file)) !== FALSE) {
+    if ($line[$care_index] == $country_code) {
+      $country_code = $line[$iso_index];
     }
   }
+  fclose($file);
   return $country_code;
 }
