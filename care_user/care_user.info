@@ -8,3 +8,4 @@ dependencies[] = care
 dependencies[] = user
 
 files[] = CareUser.inc
+files[] = CareUnknownUser.inc
