@@ -7,25 +7,25 @@
 
 class CareUser {
 
-  private $account;
+  protected $account;
 
-  private $waccount;
+  protected $waccount;
 
-  private $membershipNumber;
+  protected $membershipNumber;
 
-  private $membershipNumberField;
+  protected $membershipNumberField;
 
-  private $nameField;
+  protected $nameField;
 
-  private $dobField;
+  protected $dobField;
 
-  private $addressField;
+  protected $addressField;
 
-  private $emailField;
+  protected $emailField;
 
-  private $telephoneField;
+  protected $telephoneField;
 
-  private $membershipsField;
+  protected $membershipsField;
 
   /**
    * Construct a CareUser object from a Drupal account.
