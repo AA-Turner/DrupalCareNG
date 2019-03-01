@@ -24,9 +24,7 @@ function care_giftaid_existing($contact_number) {
         $no_enddate = (string) $declaration_data->EndDate == '';
         $future_enddate = (DateTime::createFromFormat('d/m/Y', (string) $declaration_data->EndDate) > new DateTime('today'));
         $current = ($no_enddate or $future_enddate);
-        $donations = (string) $declaration_data->Donations == 'Y';
-        $members = (string) $declaration_data->Members == 'Y';
-        if ($not_cancelled and $current and $donations and $members) {
+        if ($not_cancelled && $current) {
           return $declaration_data;
         }
       }
@@ -44,7 +42,9 @@ function care_giftaid_declare($contact_number, $declaration = TRUE) {
   $aprilsixlast = new DateTime('6 Apr');
   $today = new DateTime('today');
   if ($aprilsixlast > $today) {
-    $aprilsixlast->modify('-1 year');
+    $aprilsixlast->modify('-5 year');
+  } else {
+    $aprilsixlast->modify('-4 year');
   }
   $start_date = $aprilsixlast;
   // Check all previous declarations.
