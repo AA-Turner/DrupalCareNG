@@ -1,0 +1,111 @@
+<?php
+
+/*
+ * Configuration:
+ *
+ *    /admin/config/content/postcodeanywhere
+ *
+ * Add the string ".pca-address-field" to the field for "Postcode Wrapper".
+ * Add the string ".pca-postcode-lookup-field" to the field for "Postcode Input".
+ * Add the string ".pca-postcode-manual-field" to the field for "Postcode Input - Manual".
+ * Add the string ".pca-address-details" to the field for "Address Wrapper".
+ * Add the string ".pca-address-line-1" to the field for "Address Line 1".
+ * Add the string ".pca-address-line-2" to the field for "Address Line 2".
+ * Add the string ".pca-address-line-3" to the field for "Address Line 3".
+ * Add the string ".pca-town" to the field for "Town".
+ * Add the string ".pca-county" to the field for "County".
+*/
+
+/**
+ * Implements hook_field_widget_WIDGET_TYPE_form_alter().
+ */
+function care_postcodeanywhere_field_widget_care_address_widget_form_alter(&$element, &$form_state, $context) {
+  // The postcodeanywhere module currently only works with one address per page.
+  if ($context['field']['cardinality'] == 1) {
+    $delta = $context['delta'];
+    // Move address number display and country code to top.
+    $element['address_number_display']['#weight'] = -20;
+    $element['country_code']['#weight'] = -15;
+    // Add classes for postcodeanywhere.
+    $element['address_line_1']['#attributes']['class'][] = 'pca-address-line-1';
+    $element['address_line_2']['#attributes']['class'][] = 'pca-address-line-2';
+    $element['address_line_3']['#attributes']['class'][] = 'pca-address-line-3';
+    $element['town']['#attributes']['class'][] = 'pca-town';
+    $element['county']['#attributes']['class'][] = 'pca-county';
+    $element['postcode']['#attributes']['class'][] = 'pca-postcode-manual-field';
+    // Add postcode lookup text field.
+    $element['postcode_lookup'] = [
+      '#type' => 'textfield',
+      '#title' => t('Postcode Lookup'),
+      '#default_value' => isset($context['items'][$delta]['postcode']) ? $context['items'][$delta]['postcode'] : '',
+      '#size' => 10,
+      '#maxlength' => 10,
+      '#weight' => -10,
+      '#attributes' => ['class' => ['pca-postcode-lookup-field']],
+    ];
+    $element['pca_field_start'] = [
+      '#markup' => '<div class="pca-address-field">',
+      '#weight' => -50,
+    ];
+    $element['pca_field_end'] = [
+      '#markup' => '</div>',
+      '#weight' => 50,
+    ];
+    /*
+     * Add the string ".pca-address-details" to the field for "Address Wrapper".
+     */
+    $element['pca_address_wrapper_start'] = [
+      '#markup' => '<div class="pca-address-details">',
+      '#weight' => -5,
+    ];
+    $element['pca_address_wrapper_end'] = [
+      '#markup' => '</div>',
+    ];
+  }
+}
+
+/**
+ * Implements hook_field_widget_WIDGET_TYPE_form_alter().
+ */
+function care_postcodeanywhere_field_widget_care_address_select_widget_form_alter(&$element, &$form_state, $context) {
+  // The postcodeanywhere module currently only works with one address per page.
+  if ($context['field']['cardinality'] == 1) {
+    // Move address selector and country code to top.
+    $delta = $context['delta'];
+    $element['address_index']['#weight'] = -20;
+    $element['country_code']['#weight'] = -15;
+    // Add classes for postcodeanywhere.
+    $element['address_line_1']['#attributes']['class'][] = 'pca-address-line-1';
+    $element['address_line_2']['#attributes']['class'][] = 'pca-address-line-2';
+    $element['address_line_3']['#attributes']['class'][] = 'pca-address-line-3';
+    $element['town']['#attributes']['class'][] = 'pca-town';
+    $element['county']['#attributes']['class'][] = 'pca-county';
+    $element['postcode']['#attributes']['class'][] = 'pca-postcode-manual-field';
+    // Add postcode lookup text field.
+    $element['postcode_lookup'] = [
+      '#type' => 'textfield',
+      '#title' => t('Postcode Lookup'),
+      '#default_value' => isset($context['items'][$delta]['postcode']) ? $context['items'][$delta]['postcode'] : '',
+      '#size' => 10,
+      '#maxlength' => 10,
+      '#weight' => -10,
+      '#states' => $element['address_line_1']['#states'],
+      '#attributes' => ['class' => ['pca-postcode-lookup-field']],
+    ];
+    $element['pca_field_start'] = [
+      '#markup' => '<div class="pca-address-field">',
+      '#weight' => -50,
+    ];
+    $element['pca_field_end'] = [
+      '#markup' => '</div>',
+      '#weight' => 50,
+    ];
+    $element['pca_address_wrapper_start'] = [
+      '#markup' => '<div class="pca-address-details">',
+      '#weight' => -5,
+    ];
+    $element['pca_address_wrapper_end'] = [
+      '#markup' => '</div>',
+    ];
+  }
+}
