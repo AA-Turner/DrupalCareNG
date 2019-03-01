@@ -10,65 +10,83 @@
  */
 function care_fields_admin_settings_form($form, &$form_state) {
 
-  $form['care_fields_show_numbers'] = array(
+  $form['care_fields_show_numbers'] = [
     '#title' => t('Display CARE address/communication numbers to administrators.'),
     '#type' => 'checkbox',
-    '#default_value' => variable_get('care_fields_show_numbers', TRUE));
-  $form['titles'] = array(
+    '#default_value' => variable_get('care_fields_show_numbers', TRUE),
+  ];
+  $form['titles'] = [
     '#type' => 'fieldset',
-    '#title' => 'Titles');
-  $form['titles']['care_fields_titles'] = array(
+    '#title' => 'Titles',
+  ];
+  $form['titles']['care_fields_titles'] = [
     '#title' => t('Titles'),
     '#type' => 'textarea',
-    '#default_value' => variable_get('care_fields_titles', "Mr\nMrs\nMiss\nMs\nDr"));
-  $form['titles']['import'] = array(
+    '#default_value' => variable_get('care_fields_titles', "Mr\nMrs\nMiss\nMs\nDr"),
+  ];
+  $form['titles']['import'] = [
     '#type' => 'submit',
     '#value' => 'Import titles from CARE',
-    '#submit' => array(
-      'care_fields_admin_titles_import'));
-  $form['countries'] = array(
+    '#submit' => [
+      'care_fields_admin_titles_import',
+    ],
+  ];
+  $form['countries'] = [
     '#type' => 'fieldset',
-    '#title' => 'Countries');
-  $form['countries']['care_fields_countries'] = array(
+    '#title' => 'Countries',
+  ];
+  $form['countries']['care_fields_countries'] = [
     '#title' => t('Countries'),
     '#type' => 'textarea',
-    '#default_value' => variable_get('care_fields_countries', "UK|United Kingdom\nUSA|United States of America"));
-  $form['countries']['care_fields_country_default'] = array(
+    '#default_value' => variable_get('care_fields_countries', "UK|United Kingdom\nUSA|United States of America"),
+  ];
+  $form['countries']['care_fields_country_default'] = [
     '#title' => t('Default Country code'),
     '#type' => 'textfield',
     '#size' => 8,
-    '#default_value' => variable_get('care_fields_country_default', 'UK'));
-  $form['countries']['import'] = array(
+    '#default_value' => variable_get('care_fields_country_default', 'UK'),
+  ];
+  $form['countries']['import'] = [
     '#type' => 'submit',
     '#value' => 'Import countries from CARE',
-    '#submit' => array(
-      'care_fields_admin_countries_import'));
-  $form['devices'] = array(
+    '#submit' => [
+      'care_fields_admin_countries_import',
+    ],
+  ];
+  $form['devices'] = [
     '#type' => 'fieldset',
-    '#title' => 'Device types');
-  $form['devices']['care_fields_email_devices'] = array(
+    '#title' => 'Device types',
+  ];
+  $form['devices']['care_fields_email_devices'] = [
     '#title' => t('Email'),
     '#type' => 'textarea',
-    '#default_value' => variable_get('care_fields_email_devices', "EM|Home E-Mail\nEW|Work Email"));
-  $form['devices']['care_fields_telephone_devices'] = array(
+    '#default_value' => variable_get('care_fields_email_devices', "EM|Home E-Mail\nEW|Work Email"),
+  ];
+  $form['devices']['care_fields_telephone_devices'] = [
     '#title' => t('Telephone'),
     '#type' => 'textarea',
-    '#default_value' => variable_get('care_fields_telephone_devices', "TH|Home telephone\nTE|Work Telephone"));
-  $form['devices']['care_fields_website_devices'] = array(
+    '#default_value' => variable_get('care_fields_telephone_devices', "TH|Home telephone\nTE|Work Telephone"),
+  ];
+  $form['devices']['care_fields_website_devices'] = [
     '#title' => t('Website'),
     '#type' => 'textarea',
-    '#default_value' => variable_get('care_fields_website_devices', "W|Web Site Address"));
-  $form['devices']['import'] = array(
+    '#default_value' => variable_get('care_fields_website_devices', "W|Web Site Address"),
+  ];
+  $form['devices']['import'] = [
     '#type' => 'submit',
     '#value' => 'Import devices from CARE',
-    '#submit' => array(
-      'care_fields_admin_devices_import'));
+    '#submit' => [
+      'care_fields_admin_devices_import',
+    ],
+  ];
   $form = system_settings_form($form);
-  $form['actions']['reset'] = array(
+  $form['actions']['reset'] = [
     '#type' => 'submit',
     '#value' => 'Reset to default',
-    '#submit' => array(
-      'care_fields_admin_reset'));
+    '#submit' => [
+      'care_fields_admin_reset',
+    ],
+  ];
   return $form;
 }
 
@@ -88,12 +106,16 @@ function care_fields_admin_reset() {
  * Import-communications-devices callback.
  */
 function care_fields_admin_devices_import() {
-  $email_devices = array();
-  $telephone_devices = array();
-  $website_devices = array();
-  $data = array();
-  $typedata = array(
-    'pLookupDataType' => 'xldtDevices');
+  $email_devices = [];
+  $telephone_devices = [];
+  $website_devices = [];
+  $data = [
+    'Active' => 'Y',
+    'LookupGroup' => 'WEBD',
+  ];
+  $typedata = [
+    'pLookupDataType' => 'xldtDevices',
+  ];
   $result = care_call_method('GetLookupData', $data, $typedata);
   foreach ($result as $row) {
     if ($row->Email == 'Y') {
@@ -106,6 +128,13 @@ function care_fields_admin_devices_import() {
       $telephone_devices[] = "$row->Device|$row->DeviceDesc";
     }
   }
+  drupal_set_message(t('Imported !n (!e email, !t telephone, !w web) device types from CARE.', [
+    '!n' => count($email_devices) + count($telephone_devices) + count($website_devices),
+    '!e' => count($email_devices),
+    '!t' => count($telephone_devices),
+    '!w' => count($website_devices),
+  ]));
+
   variable_set('care_fields_email_devices', implode("\n", $email_devices));
   variable_set('care_fields_telephone_devices', implode("\n", $telephone_devices));
   variable_set('care_fields_website_devices', implode("\n", $website_devices));
@@ -115,14 +144,21 @@ function care_fields_admin_devices_import() {
  * Import-title-options callback.
  */
 function care_fields_admin_titles_import() {
-  $titles = array();
-  $data = array();
-  $typedata = array(
-    'pLookupDataType' => 'xldtTitles');
+  $titles = [];
+  $data = [
+    'Active' => 'Y',
+    'LookupGroup' => 'WEBT',
+  ];
+  $typedata = [
+    'pLookupDataType' => 'xldtTitles',
+  ];
   $result = care_call_method('GetLookupData', $data, $typedata);
   foreach ($result as $row) {
     $titles[] = trim($row->Title);
   }
+  drupal_set_message(t('Imported !n titles from CARE.', [
+    '!n' => count($titles),
+  ]));
   variable_set('care_fields_titles', implode("\n", $titles));
 }
 
@@ -130,10 +166,11 @@ function care_fields_admin_titles_import() {
  * Import-country-options callback.
  */
 function care_fields_admin_countries_import() {
-  $countries = array();
-  $data = array();
-  $typedata = array(
-    'pLookupDataType' => 'xldtCountries');
+  $countries = [];
+  $data = [];
+  $typedata = [
+    'pLookupDataType' => 'xldtCountries',
+  ];
   $result = care_call_method('GetLookupData', $data, $typedata);
   foreach ($result as $row) {
     $countries[] = "$row->Country|$row->CountryDesc";
