@@ -5,7 +5,7 @@
  *
  *    /admin/config/content/postcodeanywhere
  *
- * Add the string ".pca-address-field" to the field for "Postcode Wrapper".
+ * Add the string ".pca-postcode-wrapper" to the field for "Postcode Wrapper".
  * Add the string ".pca-postcode-lookup-field" to the field for "Postcode Input".
  * Add the string ".pca-postcode-manual-field" to the field for "Postcode Input - Manual".
  * Add the string ".pca-address-details" to the field for "Address Wrapper".
@@ -42,14 +42,8 @@ function care_postcodeanywhere_field_widget_care_address_widget_form_alter(&$ele
       '#maxlength' => 10,
       '#weight' => -10,
       '#attributes' => ['class' => ['pca-postcode-lookup-field']],
-    ];
-    $element['pca_field_start'] = [
-      '#markup' => '<div class="pca-address-field">',
-      '#weight' => -50,
-    ];
-    $element['pca_field_end'] = [
-      '#markup' => '</div>',
-      '#weight' => 50,
+      '#prefix' => '<div class="pca-postcode-wrapper">',
+      '#suffix' => '</div>',
     ];
     /*
      * Add the string ".pca-address-details" to the field for "Address Wrapper".
@@ -91,14 +85,8 @@ function care_postcodeanywhere_field_widget_care_address_select_widget_form_alte
       '#weight' => -10,
       '#states' => $element['address_line_1']['#states'],
       '#attributes' => ['class' => ['pca-postcode-lookup-field']],
-    ];
-    $element['pca_field_start'] = [
-      '#markup' => '<div class="pca-address-field">',
-      '#weight' => -50,
-    ];
-    $element['pca_field_end'] = [
-      '#markup' => '</div>',
-      '#weight' => 50,
+      '#prefix' => '<div class="pca-postcode-wrapper">',
+      '#suffix' => '</div>',
     ];
     $element['pca_address_wrapper_start'] = [
       '#markup' => '<div class="pca-address-details">',
