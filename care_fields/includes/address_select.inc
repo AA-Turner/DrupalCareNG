@@ -116,7 +116,7 @@ function _care_fields_address_select_form(&$element, $form_state, $field, $insta
     }
   }
 
-  $element['address_line_1'] = array(
+  $element['address_line_1'] = [
     '#type' => 'textfield',
     '#title' => t('Address line 1'),
     '#states' => [

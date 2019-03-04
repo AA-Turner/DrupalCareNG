@@ -101,7 +101,7 @@ function _care_fields_address_form(&$element, $form_state, $field, $instance, $i
     '#default_value' => $country_default,
     '#required' => $element['#required'],
   ];
-  $element['postcode'] = array(
+  $element['postcode'] = [
     '#type' => 'textfield',
     '#title' => t('Postcode'),
     '#default_value' => isset($items[$delta]['postcode']) ? $items[$delta]['postcode'] : '',
