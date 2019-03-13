@@ -191,7 +191,19 @@ function _care_fields_address_select_form(&$element, $form_state, $field, $insta
     '#default_value' => isset($items[$delta]['county']) ? $items[$delta]['county'] : '',
     '#size' => 30,
   ];
-
+  $element['country_code'] = [
+    '#type' => 'select',
+    '#title' => t('Country'),
+    '#states' => [
+      'visible' => [
+        ':input[name="' . $number_field_name . '"]' => [
+          'value' => -1,
+        ],
+      ],
+    ],
+    '#options' => $country_options,
+    '#default_value' => $country_default,
+  ];
   $element['postcode'] = [
     '#type' => 'textfield',
     '#title' => t('Postcode'),
