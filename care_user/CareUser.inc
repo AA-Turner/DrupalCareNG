@@ -310,16 +310,19 @@ class CareUser {
       $data = [
         'ContactNumber' => $this->membershipNumber,
       ];
-      $typedata = [
-        'pSelectDataType' => 'xcdtContactInformation',
-      ];
-      $care_xml_data = care_call_method('SelectContactData', $data, $typedata);
+      // Use FindContacts in case the membership has been merged into another.
+      $care_xml_data = care_call_method('FindContacts', $data);
       if (isset($care_xml_data->ErrorMessage)) {
         watchdog('care_user', 'CARE error fetchBasicDetails: @error', [
           '@error' => (string) $care_xml_data->ErrorMessage,
         ], WATCHDOG_ERROR);
       }
       else {
+        // Update the membership number if changed due to a merge.
+        if ($care_xml_data->DataRow->ContactNumber != $this->membershipNumber) {
+          $this->membershipNumberField->number = $care_xml_data->DataRow->ContactNumber;
+        }
+        // Update the name field.
         if ($this->nameField) {
           $data = [
             'title' => (string) $care_xml_data->DataRow->Title,
@@ -329,6 +332,7 @@ class CareUser {
           ];
           $this->nameField->set($data);
         }
+        // Update the date of birth field.
         if ($this->dobField) {
           $date_string = (string) $care_xml_data->DataRow->DateOfBirth;
           if ($date_string) {
