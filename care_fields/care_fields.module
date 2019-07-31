@@ -649,24 +649,7 @@ function care_fields_field_formatter_view($entity_type, $entity, $field, $instan
         break;
 
       case 'care_telephone_formatter':
-        $device_options = [];
-        $device_codes = preg_split('/\r\n|[\r\n]/', variable_get('care_fields_telephone_devices'));
-        foreach ($device_codes as $device_code) {
-          if ($device_code) {
-            $data = explode('|', $device_code);
-            $device_options[$data[0]] = $data[1];
-          }
-        }
-        if (array_key_exists($item['device_code'], $device_options)) {
-          $device = $device_options[$item['device_code']];
-        }
-        else {
-          $device = 'Device code ' . $item['device_code'];
-        }
-        $element[$delta]['#markup'] = $item['telephone'] . ' (' . $device . ')';
-        if (variable_get('care_fields_show_numbers', TRUE) && user_access('care_fields view CARE numbers')) {
-          $element[$delta]['#markup'] .= ' <i>[' . $item['communication_number'] . ']</i>';
-        }
+        $element = _care_fields_care_telephone_formatter($delta, $item, $instance);
         break;
 
       case 'care_email_formatter':

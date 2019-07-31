@@ -9,6 +9,10 @@
  * Field instance settings form.
  */
 function _care_fields_email_instance_settings_form($settings) {
+  $settings['input_options'] += [
+    'default_from_current_user' => 0,
+    'display_type_field' => 1,
+  ];
   $form = [];
   $form['input_options'] = [
     '#title' => t('Input options'),
@@ -21,8 +25,12 @@ function _care_fields_email_instance_settings_form($settings) {
     '#default_value' => $settings['input_options']['default_from_current_user'],
   ];
   $form['input_options']['display_type_field'] = [
-    '#title' => t('Display email type field to user.'),
-    '#type' => 'checkbox',
+    '#title' => t('Email types'),
+    '#type' => 'radios',
+    '#options' => [
+      1 => 'Allow user to select email types',
+      0 => t('Fix email type for this field'),
+    ],
     '#default_value' => $settings['input_options']['display_type_field'],
   ];
   $email_devices = preg_split('/\r\n|[\r\n]/', variable_get('care_fields_email_devices', "EM|Home email\nEW|Work email"));
@@ -34,13 +42,13 @@ function _care_fields_email_instance_settings_form($settings) {
     }
   }
   $form['input_options']['fixed_type'] = [
-    '#title' => t('Use this type for all email addresses.'),
+    '#title' => t('Use this email type for all addresses in this field'),
     '#type' => 'select',
     '#options' => $email_device_options,
     '#states' => [
       'visible' => [
         ':input[name="instance[settings][input_options][display_type_field]"]' => [
-          'checked' => FALSE,
+          'value' => 0,
         ],
       ],
     ],
@@ -136,7 +144,7 @@ function _care_fields_email_form(&$element, $form_state, $field, $instance, $ite
   if ($field['cardinality'] != 1) {
     $element['delete'] = [
       '#type' => 'checkbox',
-      '#title' => t('Delete this email address.'),
+      '#title' => t('Delete this email address'),
       '#default_value' => isset($items[$delta]['local_unsent_changes']) ? $items[$delta]['local_unsent_changes'] == CARE_FIELDS_DELETED : FALSE,
     ];
   }

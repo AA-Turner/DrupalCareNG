@@ -9,6 +9,10 @@
  * Field instance settings form.
  */
 function _care_fields_telephone_instance_settings_form($settings) {
+  $settings['input_options'] += [
+    'default_from_current_user' => 0,
+    'display_type_field' => 1,
+  ];
   $form = [];
   $form['input_options'] = [
     '#title' => t('Input options'),
@@ -20,6 +24,37 @@ function _care_fields_telephone_instance_settings_form($settings) {
     '#type' => 'checkbox',
     '#default_value' => $settings['input_options']['default_from_current_user'],
   ];
+  $form['input_options']['display_type_field'] = [
+    '#title' => t('Telephone types'),
+    '#type' => 'radios',
+    '#options' => [
+      1 => 'Allow user to select telephone types',
+      0 => t('Fix telephone type for this field'),
+    ],
+    '#default_value' => $settings['input_options']['display_type_field'],
+  ];
+  $telephone_devices = preg_split('/\r\n|[\r\n]/', variable_get('care_fields_telephone_devices', "TH|Home telephone\nTE|Work Telephone"));
+  $telephone_device_options = [];
+  foreach ($telephone_devices as $index => $telephone_device) {
+    if (trim($telephone_device)) {
+      $data = explode("|", $telephone_device);
+      $telephone_device_options[$data[0]] = $data[1];
+    }
+  }
+  $form['input_options']['fixed_type'] = [
+    '#title' => t('Use this telephone type for all numbers in this field'),
+    '#type' => 'select',
+    '#options' => $telephone_device_options,
+    '#states' => [
+      'visible' => [
+        ':input[name="instance[settings][input_options][display_type_field]"]' => [
+          'value' => 0,
+        ],
+      ],
+    ],
+    '#default_value' => $settings['input_options']['fixed_type'],
+  ];
+
   return $form;
 }
 
@@ -71,34 +106,43 @@ function _care_fields_telephone_form(&$element, $form_state, $field, $instance, 
     '#maxlength' => 20,
     '#size' => 30,
   ];
-  $telephone_device_options = [];
-  $telephone_devices = preg_split('/\r\n|[\r\n]/', variable_get('care_fields_telephone_devices', "TH|Home telephone\nTE|Work Telephone"));
-  foreach ($telephone_devices as $index => $telephone_device) {
-    if (trim($telephone_device)) {
-      $data = explode("|", $telephone_device);
-      $telephone_device_options[$data[0]] = $data[1];
+  if ($settings['display_type_field']) {
+    $telephone_device_options = [];
+    $telephone_devices = preg_split('/\r\n|[\r\n]/', variable_get('care_fields_telephone_devices', "TH|Home telephone\nTE|Work Telephone"));
+    foreach ($telephone_devices as $index => $telephone_device) {
+      if (trim($telephone_device)) {
+        $data = explode("|", $telephone_device);
+        $telephone_device_options[$data[0]] = $data[1];
+      }
     }
-  }
-  if (!$device_code_default) {
-    $device_code_default = key($telephone_device_options);
-  }
-  $telephone_device_default = isset($items[$delta]['device_code']) ? $items[$delta]['device_code'] : $device_code_default;
-  if (!array_key_exists($telephone_device_default, $telephone_device_options)) {
-    $telephone_device_options += [
-      $telephone_device_default => 'Device code ' . $telephone_device_default,
+    if (!$device_code_default) {
+      $device_code_default = key($telephone_device_options);
+    }
+    $telephone_device_default = isset($items[$delta]['device_code']) ? $items[$delta]['device_code'] : $device_code_default;
+    if (!array_key_exists($telephone_device_default, $telephone_device_options)) {
+      $telephone_device_options += [
+        $telephone_device_default => 'Device code ' . $telephone_device_default,
+      ];
+    }
+    $element['device_code'] = [
+      '#type' => 'select',
+      '#title' => t('Type'),
+      '#options' => $telephone_device_options,
+      '#default_value' => $telephone_device_default,
+      '#required' => $element['#required'],
     ];
   }
-  $element['device_code'] = [
-    '#type' => 'select',
-    '#title' => t('Type'),
-    '#options' => $telephone_device_options,
-    '#default_value' => $telephone_device_default,
-    '#required' => $element['#required'],
-  ];
+  else {
+    $element['device_code'] = [
+      '#type' => 'value',
+      '#value' => $settings['fixed_type'],
+      '#default_value' => $settings['fixed_type'],
+    ];
+  }
   if ($field['cardinality'] != 1) {
     $element['delete'] = [
       '#type' => 'checkbox',
-      '#title' => t('Delete'),
+      '#title' => t('Delete this telephone number'),
       '#default_value' => isset($items[$delta]['local_unsent_changes']) ? $items[$delta]['local_unsent_changes'] == CARE_FIELDS_DELETED : FALSE,
     ];
   }
@@ -128,7 +172,6 @@ function _care_fields_telephone_form(&$element, $form_state, $field, $instance, 
   $element['#element_validate'] = [
     '_care_fields_field_widget_telephone_validate',
   ];
-
 }
 
 /**
@@ -184,6 +227,39 @@ function _care_fields_telephone_field_is_empty($item, $field) {
   $empty_telephone = ($item['telephone'] == '');
   $delete = (isset($item['delete']) and $item['delete']);
   return ($not_in_care && ($delete || $empty_telephone));
+}
+
+/**
+ * Display formatter.
+ */
+function _care_fields_care_telephone_formatter($delta, $item, $instance) {
+  $element = [];
+  $element[$delta]['#markup'] = check_plain($item['telephone']);
+  if ($instance['settings']['input_options']['display_type_field']) {
+    $device_options = [];
+    $device_codes = preg_split('/\r\n|[\r\n]/', variable_get('care_fields_telephone_devices'));
+    foreach ($device_codes as $device_code) {
+      if ($device_code) {
+        $data = explode('|', $device_code);
+        $device_options[$data[0]] = $data[1];
+      }
+    }
+    if (array_key_exists($item['device_code'], $device_options)) {
+      $device = $device_options[$item['device_code']];
+    }
+    else {
+      $device = 'Device code ' . $item['device_code'];
+    }
+    $element[$delta]['#markup'] .= ' (' . check_plain($device) . ')';
+  }
+  if (variable_get('care_fields_show_numbers', TRUE) and user_access('care_fields view CARE numbers')) {
+    $element[$delta]['#markup'] .= ' <i>[' . $item['communication_number'];
+    if ($item['device_default']) {
+      $element[$delta]['#markup'] .= ', DeviceDefault';
+    }
+    $element[$delta]['#markup'] .= ']</i>';
+  }
+  return $element;
 }
 
 /**
