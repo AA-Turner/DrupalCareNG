@@ -1,0 +1,259 @@
+<?php
+
+/**
+ * Implements hook_permission().
+ */
+function care_taxonomy_permission() {
+  return [
+    'administer care taxonomy integration' => [
+      'title' => t('Administer CARE taxonomy integration.'),
+      'description' => t('Import CARE types into Drupal.'),
+    ],
+  ];
+}
+
+/**
+ * Implements hook_menu().
+ */
+function care_taxonomy_menu() {
+  $items['admin/structure/taxonomy/care'] = [
+    'title' => 'CARE integration',
+    'description' => 'Load CARE types into Drupal.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => [
+      'care_taxonomy_admin_settings_form',
+    ],
+    'file' => 'admin/settings_form.inc',
+    'access arguments' => [
+      'administer care taxonomy integration',
+    ],
+    'type' => MENU_NORMAL_ITEM,
+    'weight' => -10,
+  ];
+  return $items;
+}
+
+/**
+ * Implements hook_cron().
+ */
+function care_taxonomy_cron() {
+  $now = new DateTime();
+  if ($now->format('H') >= '03') {
+    $last_import = new DateTime(variable_get('care_taxonomy_last_import', '1900-01-01T00:00:00'));
+    $interval = $last_import->diff($now);
+    $total_days = (int) $interval->format('%a');
+    $hours = (int) $interval->format('%h');
+    if ($total_days > 0 || $hours > 20) {
+      //care_taxonomy_import_source_codes();
+      care_taxonomy_import_promotion_codes();
+      //care_taxonomy_import_membership_codes();
+      //care_taxonomy_import_mailing_suppression_codes();
+      $activity_codes = variable_get('care_taxonomy_activities', []);
+      foreach ($activity_codes as $code) {
+        care_taxonomy_import_activity_values($code);
+      }
+      variable_set('care_taxonomy_last_import', $now->format('c'));
+    }
+  }
+}
+
+/**
+ * Callback to import Source codes from CARE.
+ */
+function care_taxonomy_import_source_codes() {
+  $vocabulary = 'care_taxonomy_source_code';
+  $care_type = 'xldtSources';
+  $care_code_field = 'Source';
+  $care_description_field = 'SourceDesc';
+  return _care_taxonomy_import_codes($vocabulary, $care_type, $care_code_field, $care_description_field);
+}
+
+/**
+ * Callback to import Promotion codes from CARE.
+ */
+function care_taxonomy_import_promotion_codes() {
+  return _care_taxonomy_import_codes('care_taxonomy_promotion_code', 'xldtSources', 'Source', 'SourceDesc');
+}
+
+/**
+ * Import Membership codes from CARE.
+ */
+function care_taxonomy_import_membership_codes() {
+  return _care_taxonomy_import_codes('care_taxonomy_membership_code', 'xldtMembershipTypes', 'MembershipType', 'MembershipTypeDesc');
+}
+
+/**
+ * Import Mailing suppression codes from CARE.
+ */
+function care_taxonomy_import_mailing_suppression_codes() {
+  return _care_taxonomy_import_codes('care_taxonomy_mailing_suppression_code', 'xldtSuppressions', 'MailingSuppression', 'MailingSuppressionDesc');
+}
+
+/**
+ * Import  Activity codes from CARE.
+ */
+function care_taxonomy_import_activity_codes() {
+  return _care_taxonomy_import_codes('care_taxonomy_activity_code', 'xldtSuppressions', 'MailingSuppression', 'MailingSuppressionDesc');
+}
+
+/**
+ * Import  Activity codes from CARE.
+ */
+function care_taxonomy_import_activity_values($activity_code) {
+  $name = "CARE $activity_code activity";
+  $machine_name = "care_taxonomy_activity_" . strtolower($activity_code);
+  $existing_vocabulary = taxonomy_vocabulary_machine_name_load($machine_name);
+  if ($existing_vocabulary) {
+    $vid = $existing_vocabulary->vid;
+  }
+  else {
+    // Create vocabulary.
+    $new_vocab = (object) [
+      'name' => $name,
+      'machine_name' => $machine_name,
+    ];
+    taxonomy_vocabulary_save($new_vocab);
+    $vid = $new_vocab->vid;
+  }
+  $data = ['Activity' => $activity_code];
+  $typedata = ['pLookupDataType' => 'xldtActivityValues'];
+  $result = care_call_method('GetLookupData', $data, $typedata);
+  _care_taxonomy_process_terms($vid, $machine_name, $result, 'ActivityValue', 'ActivityValueDesc');
+}
+
+/**
+ * Import codes from CARE.
+ */
+function _care_taxonomy_import_codes($vocabulary, $care_type, $care_code_field, $care_description_field) {
+  $name = str_replace('_', ' ', $vocabulary);
+  $name = str_replace('care taxonomy', 'CARE', $name);
+  $existing_vocabulary = taxonomy_vocabulary_machine_name_load($vocabulary);
+  if ($existing_vocabulary) {
+    $vid = $existing_vocabulary->vid;
+  }
+  else {
+    // Create vocabulary.
+    $new_vocab = (object) [
+      'name' => $name,
+      'machine_name' => $vocabulary,
+    ];
+    taxonomy_vocabulary_save($new_vocab);
+    $vid = $new_vocab->vid;
+  }
+  $data = [
+    'Active' => 'Y',
+  ];
+  if ($vocabulary == 'care_taxonomy_source_code') {
+    $data['LookupGroup'] = 'WEB';
+  }
+  $typedata = [
+    'pLookupDataType' => $care_type,
+  ];
+  $result = care_call_method('GetLookupData', $data, $typedata);
+  _care_taxonomy_process_terms($vid, $vocabulary, $result, $care_code_field, $care_description_field);
+}
+
+/**
+ * Create/update/unpublish taxonomy terms.
+ */
+function _care_taxonomy_process_terms($vid, $vocabulary_machine_name, $care_result, $care_code_field, $care_description_field) {
+  $count_all = 0;
+  $count_added = 0;
+  $count_unpublished = 0;
+  $count_republished = 0;
+  $existing_query = new EntityFieldQuery();
+  $existing_query->entityCondition('entity_type', 'taxonomy_term')
+    ->entityCondition('bundle', $vocabulary_machine_name);
+  if (module_exists('termstatus')) {
+    // EntityFieldQuery can't do joins in D7, so we sub-query.
+    $sub_query = db_select('termstatus', 't')
+      ->fields('t', ['tid'])
+      ->condition('status', 1);
+    $existing_query->propertyCondition('tid', $sub_query, 'IN');
+  }
+  $existing_result = $existing_query->execute();
+  $existing_term_ids = $care_result ? $existing_result['taxonomy_term'] : [];
+  foreach ($care_result as $row) {
+    $historic = (string) $row->IsHistoric;
+    if ($historic == 'N' or !$historic) {
+      $code = (string) $row->$care_code_field;
+      $description = (string) $row->$care_description_field;
+      $exists = taxonomy_get_term_by_name($code, $vocabulary_machine_name);
+      if (count($exists)) {
+        foreach ($exists as $existing) {
+          $existing->description = $description;
+          $existing->format = 'plain_text';
+          if (isset($existing->status) && $existing->status == 0) {
+            $existing->status = 1;
+            $count_republished++;
+          }
+          taxonomy_term_save($existing);
+          // Remove this from list of existing term IDs, we're keeping it.
+          unset($existing_term_ids[$existing->tid]);
+        }
+      }
+      else {
+        $newterm = new stdClass();
+        $newterm->name = $code;
+        $newterm->vid = $vid;
+        $newterm->description = $description;
+        $newterm->format = 'plain_text';
+        taxonomy_term_save($newterm);
+        $count_added++;
+      }
+      $count_all++;
+    }
+  }
+
+  // "unpublish" remaining Drupal terms not active in CARE.
+  if (module_exists('termstatus')) {
+    foreach ($existing_term_ids as $tid) {
+      $term = taxonomy_term_load($tid->tid);
+      $term->status = 0;
+      taxonomy_term_save($term);
+    }
+    $count_unpublished = count($existing_term_ids);
+    if ($count_unpublished > 0) {
+      $message_args = [
+        '!i' => $count_unpublished,
+        '%vocabulary' => $vocabulary_machine_name,
+      ];
+      drupal_set_message(t('Unpublished !i old codes in %vocabulary no longer read from CARE.', $message_args));
+      watchdog('care_taxonomy', 'Unpublished !i old codes in %vocabulary no longer read from CARE.', $message_args);
+    }
+  }
+  if ($count_republished > 0) {
+    $message_args = [
+      '!i' => $count_republished,
+      '%vocabulary' => $vocabulary_machine_name,
+    ];
+    drupal_set_message(t('Re-published !i codes in %vocabulary, as read from CARE.', $message_args));
+    watchdog('care_taxonomy', 'Re-published !i codes in %vocabulary, as read from CARE.', $message_args);
+  }
+  if ($count_added > 0) {
+    $message_args = [
+      '!i' => $count_added,
+      '!n' => $count_all,
+      '%vocabulary' => $vocabulary_machine_name,
+    ];
+    drupal_set_message(t('Imported !i new codes into %vocabulary, !n codes read from CARE.', $message_args));
+    watchdog('care_taxonomy', 'Imported !i new codes into %vocabulary, !n codes read from CARE.', $message_args);
+  }
+  if (($count_unpublished + $count_added + $count_republished) == 0) {
+    $message_args = [
+      '!n' => $count_all,
+      '%vocabulary' => $vocabulary_machine_name,
+    ];
+    drupal_set_message(t('No changes for %vocabulary, !n codes read from CARE.', $message_args));
+  }
+}
+
+/**
+ * Implements hook_views_api().
+ */
+function care_taxonomy_views_api() {
+  return [
+    'api' => 3,
+    'path' => drupal_get_path('module', 'care_taxonomy') . '/views',
+  ];
+}

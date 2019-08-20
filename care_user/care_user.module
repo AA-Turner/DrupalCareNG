@@ -1,0 +1,182 @@
+<?php
+
+/**
+ * @file
+ * Main module file.
+ */
+
+/**
+ * Implements hook_permission().
+ */
+function care_user_permission() {
+  return [
+    'administer care user integration' => [
+      'title' => t('Administer CARE user integration'),
+      'description' => t('Configure CARE user integration settings.'),
+      'restrict access' => TRUE,
+    ],
+    'request new membership cards for anyone' => [
+      'title' => t('Request new membership cards for anyone'),
+      'description' => t('Normally users can only request cards for themselves.'),
+      'restrict access' => TRUE,
+    ],
+  ];
+}
+
+/**
+ * Implements hook_field_storage_pre_update().
+ *
+ * Prevent field data being saved for UID=0.
+ */
+function care_user_field_storage_pre_update($entity_type, $entity, &$skip_fields) {
+  if ($entity_type == 'user' && $entity->uid == 0) {
+    $fields = field_info_instances('user');
+    foreach ($fields['user'] as $field_name => $field) {
+      $skip_fields[$field['field_id']] = $field_name;
+    }
+    watchdog('care_user', 'Field update blocked for UID=0. Skip_fields: <pre>%data</pre>', ['%data' => print_r($skip_fields, TRUE)]);
+  }
+}
+
+/**
+ * Implements hook_menu().
+ */
+function care_user_menu() {
+  $items = [];
+  $items['admin/config/people/accounts/care'] = [
+    'title' => 'CARE user integration',
+    'description' => 'Configuration of CARE user integration.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => [
+      'care_user_admin_settings_form',
+    ],
+    'file' => 'admin/settings_form.inc',
+    'access arguments' => [
+      'administer care user integration',
+    ],
+    'type' => MENU_NORMAL_ITEM,
+  ];
+  $items['user/%user/care_matches'] = [
+    'title' => 'CARE Matching Contacts',
+    'page callback' => 'care_user_find_care_matches',
+    'page arguments' => [
+      1,
+    ],
+    'access arguments' => [
+      'administer care user integration',
+    ],
+    'type' => MENU_LOCAL_TASK,
+  ];
+  return $items;
+}
+
+/**
+ * Implements hook_care_fields_membership_display_alter().
+ */
+function care_user_care_fields_membership_display_alter(&$markup, &$item, &$contact_number) {
+  if ($contact_number) {
+    $membership_number = $item['membership_number'];
+    $markup .= drupal_render(drupal_get_form('care_user_new_card_form', $membership_number));
+  }
+}
+
+/**
+ * Form to request new membership card.
+ */
+function care_user_new_card_form($form, &$form_state, $membership_number) {
+  $form['membership_number'] = [
+    '#type' => 'value',
+    '#value' => $membership_number,
+  ];
+  $form['button'] = [
+    '#type' => 'submit',
+    '#value' => t('Request new membership card'),
+    '#attributes' => array('class' => array('btn-margin')),
+  ];
+  return $form;
+}
+
+/**
+ * Page callback to request new membership card.
+ */
+function care_user_new_card_form_submit($form, &$form_state) {
+  $data = [
+    'MembershipNumber' => $form_state['values']['membership_number'],
+    'ReprintMembershipCard' => 'Y',
+  ];
+  $care_xml_data = care_call_method('UpdateMember', $data);
+  if (isset($care_xml_data->ErrorMessage)) {
+    watchdog('care_user', 'Membership card request failed: @error', [
+      '@error' => (string) $care_xml_data->ErrorMessage,
+    ], WATCHDOG_ERROR);
+  }
+  else {
+    watchdog('care_user', 'Request for new membership card for %memnum.', ['%memnum' => $form_state['values']['membership_number']]);
+  }
+  drupal_set_message(t('Your request for a new membership card has been recorded.'));
+}
+
+/**
+ * Access callback for requesting new membership card.
+ */
+function care_user_new_card_permission($contact_number) {
+  if (user_access('request new membership cards for anyone')) {
+    return TRUE;
+  }
+  global $user;
+  $user_wrapper = entity_metadata_wrapper('user', $user);
+  $field_name = variable_get('care_user_membership_number_field', '');
+  return ($user_wrapper->{$field_name}->number->value() == $contact_number);
+}
+
+/**
+ * Find matching accounts in CARE for Drupal account.
+ *
+ * @param array|object $account
+ *   The Drupal account to find matches for.
+ *
+ * @return string
+ *   HTML table list of matches.
+ */
+function care_user_find_care_matches($account) {
+  $care_user = new CareUnknownUser($account);
+  $email = $care_user->getEmailField()[0]->email->value();
+  $care_user->setTestEmail($email);
+  $address_field = $care_user->getAddressField()[0];
+  $care_user->setTestAddressField($address_field);
+  $matches = $care_user->findMatchingContacts();
+  $headers = [
+    'ContactNumber',
+    'Email',
+    'Title',
+    'Initial',
+    'Forenames',
+    'Surname',
+    'Address',
+    'Town',
+    'Postcode',
+  ];
+  $rows = [];
+  foreach ($matches as $match) {
+    if ($match['ContactNumber'] == $care_user->getMembershipNumber()) {
+      $match['Matches'][] = 'ContactNumber';
+    }
+    $row = [];
+    foreach ($headers as $header) {
+      $cell = [];
+      $cell['data'] = $match[$header];
+      if (in_array($header, $match['Matches'])) {
+        $cell['style'] = 'background-color: #ccffcc';
+      }
+      if (in_array($header, $match['Mismatches'])) {
+        $cell['style'] = 'background-color: #ffcccc';
+      }
+      $row[] = $cell;
+    }
+    $rows[] = $row;
+  }
+  return theme('table', [
+    'header' => $headers,
+    'rows' => $rows,
+  ]);
+}

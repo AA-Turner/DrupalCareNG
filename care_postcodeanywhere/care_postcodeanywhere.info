@@ -1,0 +1,8 @@
+name = CARE Postcode Anywhere
+description = "Integrate with Postcode Anywhere."
+package = CARE
+core = "7.x"
+version = 7.x-1.x
+
+dependencies[] = care
+dependencies[] = postcodeanywhere

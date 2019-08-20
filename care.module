@@ -5,31 +5,37 @@
  * Utility functions to call CARE web services.
  */
 
+define('IGNORE_ERRORS', TRUE);
+
 /**
- * Function to call CARE SOAP client with method name and array of data.
+ * Call CARE SOAP client with method name and associative array of data.
  *
- * This function handles and logs errors that occur at the SOAP level. It does
- * not handle or log any error conditions that are returned (without error) in
- * the SOAP call's result data.
+ * This function handles and logs errors that occur at the SOAP level, or for
+ * invalid CARE method calls. It also logs any CARE errors returned from valid
+ * calls, unless the $ignore_care_errors optional argument is set to
+ * IGNORE_ERRORS.
  *
  * @param string $methodname
- *          The name of the SOAP method to call, e.g. "AddContact".
+ *   The name of the SOAP method to call, e.g. "AddContact".
  * @param array $data
- *          A PHP associative array of parameter data,
- *          e.g. array('Title' => 'Mr', 'Forenames' => 'Fred').
+ *   A PHP associative array of parameter data, e.g.
+ *     array('Title' => 'Mr', 'Forenames' => 'Fred').
  * @param array $typedata
- *          An optional CARE type and name for the method, if needed,
- *          e.g. array('pSelectDataType' => 'xcdtContactMembershipDetails').
+ *   An optional CARE type and name for the method, if needed, e.g.
+ *     array('pSelectDataType' => 'xcdtContactMembershipDetails')
+ * @param bool $ignore_care_errors
+ *   Set to TRUE if CARE errors should be ignored and not logged.
  *
  * @return SimpleXMLElement
- *     Containing the result, or an object with an ErrorMessage in the case
- *     of any failure.
+ *   Containg the result, or an object with an ErrorMessage in the case of any
+ *   failure.
  */
-function care_call_method($methodname, $data = array(), $typedata = NULL) {
+function care_call_method($methodname, array $data = [], array $typedata = NULL, $ignore_care_errors = FALSE) {
   // Store client object for later calls.
   static $client = NULL;
-  // Don't wait for connection to time out again if it previously failed for
-  // this web request.
+  $log_calls = Drupal::config('care.settings')->get('care_log_calls');
+  $log_results = Drupal::config('care.settings')->get('care_log_results');
+  // Don't wait for connection to time out again if it previously failed.
   static $connection_failed = FALSE;
   $resultxml = new SimpleXMLElement('<xml></xml>');
   if ($connection_failed) {
@@ -39,17 +45,36 @@ function care_call_method($methodname, $data = array(), $typedata = NULL) {
   }
   // Create a SOAP client object for CARE if not already done.
   if (!$client) {
-    $service_address_url = Drupal::config('care.settings')->get('care_wsdl_url');
+    if (Drupal::config('care.settings')->get('care_database_to_use') == 'test') {
+      $service_address_url = Drupal::config('care.settings')->get('care_test_wsdl_url');
+      $service_username = Drupal::config('care.settings')->get('care_test_ntlm_username');
+      $service_password = Drupal::config('care.settings')->get('care_test_ntlm_password');
+    }
+    else {
+      $service_address_url = Drupal::config('care.settings')->get('care_wsdl_url');
+      $service_username = Drupal::config('care.settings')->get('care_ntlm_username');
+      $service_password = Drupal::config('care.settings')->get('care_ntlm_password');
+    }
     $soap_options = array(
       'wsdl_cache' => WSDL_CACHE_BOTH,
     );
-    if (Drupal::config('care.settings')->get('care_log_results')) {
+    if ($log_results) {
       $soap_options += array(
         'trace' => TRUE,
       );
     }
     try {
-      $client = new SoapClient($service_address_url, $soap_options);
+      if (class_exists('SoapClient')) {
+        if ($service_username && $service_password) {
+          $client = new NtlmSoapClient($service_address_url, $soap_options);
+        }
+        else {
+          $client = new SoapClient($service_address_url, $soap_options);
+        }
+      }
+      else {
+        throw new RuntimeException('SoapClient class does not exist.');
+      }
     }
     catch (Exception $e) {
       Drupal::logger('care')->error('Error: @message', array(
@@ -70,10 +95,10 @@ function care_call_method($methodname, $data = array(), $typedata = NULL) {
       $xml->addChild($parameter, $value);
     }
     else {
-      Drupal::logger('care')->error('Missing parameter name (PHP array key) for parameter for !method call. Data array: !data', array(
+      Drupal::logger('care')->warning('Missing parameter name (PHP array key) for parameter for !method call. Data array: !data', array(
         '!method' => $methodname,
         '!data' => print_r($data, TRUE),
-      ), WATCHDOG_WARNING);
+      ));
     }
   }
 
@@ -83,64 +108,64 @@ function care_call_method($methodname, $data = array(), $typedata = NULL) {
       // Call typed care method, two arguments.
       $typetype = key($typedata);
       $typename = $typedata[$typetype];
-      if (Drupal::config('care.settings')->get('care_log_calls')) {
+      if ($log_calls != 'none')) {
         Drupal::logger('care')->notice('@method call: <pre>@params</pre>', array(
           '@method' => $methodname,
-          '@params' => _care_pretty_xml($xml),
+          '@params' => _care_pretty_xml($xml, ($log_results != 'full')),
         ));
       }
-      $result = $client->$methodname(array(
+      $result = $client->$methodname([
         $typetype => $typename,
         'pXMLParams' => $xml->asXML(),
-      ));
+      ]);
       // Return the result as a new SimpleXML element.
       $resultname = $methodname . 'Result';
       $resultxml = new SimpleXMLElement($result->$resultname);
-      if (Drupal::config('care.settings')->get('care_log_results')) {
+      if ($log_results != 'none')) {
         Drupal::logger('care')->notice('@method result (@size): <pre>@result</pre>', array(
           '@method' => $methodname,
           '@size' => format_size(strlen($client->__getLastResponse())),
-          '@result' => _care_pretty_xml($resultxml),
+          '@result' => _care_pretty_xml($resultxml, ($log_results != 'full')),
         ));
       }
     }
     else {
       // Call simple care method, one argument.
-      if (Drupal::config('care.settings')->get('care_log_calls')) {
-        Drupal::logger('care')->notice('@method call: <pre>@params</pre>', array(
+      if ($log_calls != 'none')) {
+        Drupal::logger('care')->notice('@method call: <pre>@params</pre>', [
           '@method' => $methodname,
           '@params' => _care_pretty_xml($xml),
-        ));
+        ]);
       }
-      $result = $client->$methodname(array(
+      $result = $client->$methodname([
         'pXMLParams' => $xml->asXML(),
-      ));
+      ]);
       // Return the result as a new SimpleXML element.
       $resultname = $methodname . 'Result';
       $resultxml = new SimpleXMLElement($result->$resultname);
-      if (Drupal::config('care.settings')->get('care_log_results')) {
-        Drupal::logger('care')->notice('@method result (@size): <pre>@result</pre>', array(
+      if ($log_results != 'none') {
+        Drupal::logger('care')->notice('@method result (@size): <pre>@result</pre>', [
           '@method' => $methodname,
           '@size' => format_size(strlen($client->__getLastResponse())),
-          '@result' => _care_pretty_xml($resultxml),
-        ));
+          '@result' => _care_pretty_xml($resultxml, ($log_results != 'full')),
+        ]);
       }
     }
   }
   catch (Exception $e) {
-    Drupal::logger('care')->error('CARE Error: @message', array(
+    Drupal::logger('care')->error('CARE Error: @message', [
       '@message' => $e->getMessage(),
-    ));
+    ]);
     $resultxml->ErrorMessage = $e->getMessage();
     return $resultxml;
   }
 
   // Log any CARE error results.
-  if (isset($resultxml->ErrorMessage)) {
-    Drupal::logger('care')->error('@method Error: @message', array(
+  if (!$ignore_care_errors && isset($resultxml->ErrorMessage)) {
+    Drupal::logger('care')->error('@method Error: @message', [
       '@method' => $methodname,
       '@message' => (string) $resultxml->ErrorMessage,
-    ));
+    ]);
   }
 
   return $resultxml;
@@ -149,47 +174,109 @@ function care_call_method($methodname, $data = array(), $typedata = NULL) {
 /**
  * Private function to pretty-print XML from a SimpleXML object.
  */
-function _care_pretty_xml($xml) {
+function _care_pretty_xml(SimpleXMLElement $xml, $redact = TRUE) {
+  if ($redact) {
+    $xml = clone($xml);
+    _care_redact_xml_tree($xml);
+  }
   if (extension_loaded('dom')) {
     $doc = new DOMDocument('1.0');
     $doc->formatOutput = TRUE;
     $domnode = dom_import_simplexml($xml);
     $domnode = $doc->importNode($domnode, TRUE);
     $domnode = $doc->appendChild($domnode);
-    $xml = $doc->saveXML();
-    return $xml;
+    $output = $doc->saveXML();
   }
   else {
-    return $xml->asXML();
+    $output = $xml->asXML();
   }
+  return $output;
 }
 
-/**
- * Utility function to convert ISO 3166-1 alpha-2 codes to CARE country codes.
- */
-function care_iso3166_to_country($iso_code) {
-  $iso_code = strtoupper($iso_code);
-  module_load_include('inc', 'care', 'iso_country_mapping');
-  $country_map = _care_country_map();
-  if (array_key_exists($iso_code, $country_map) and $country_map[$iso_code]['care_code'] != '') {
-    return $country_map[$iso_code]['care_code'];
+function _care_redact_xml_tree($xml_node) {
+  foreach ($xml_node->children() as $child) {
+    _care_redact_xml_tree($child);
   }
-  else {
-    return $iso_code;
-  }
-}
-
-/**
- * Utility function to convert CARE country codes to ISO 3166-1 alpha-2 codes.
- */
-function care_country_to_iso3166($country_code) {
-  $country_code = strtoupper($country_code);
-  module_load_include('inc', 'care', 'iso_country_mapping');
-  $country_map = _care_country_map();
-  foreach ($country_map as $iso_code => $data) {
-    if ($data['care_code'] == $country_code) {
-      return $iso_code;
+  $obfuscate_fields = [
+    'AddressNumber',
+    'ContactNumber',
+    'ContactPositionNumber',
+    'DefaultContactNumber',
+    'MemberNumber',
+    'MembershipNumber',
+    'OrganisationNumber',
+    'ParentNumber',
+    'PaymentPlanNumber',
+  ];
+  foreach ($obfuscate_fields as $field_name) {
+    if (isset($xml_node->$field_name) && (string) $xml_node->$field_name != '') {
+      $xml_node->$field_name = substr($xml_node->$field_name, 0, -5) . 'xxxx' . substr($xml_node->$field_name, -1);
     }
   }
+  $redact_fields = [
+    'Address',
+    'AddressLine',
+    'AddressLine1',
+    'AddressLine2',
+    'AddressLine3',
+    'AddressMultiLine',
+    'ContactName',
+    'CurrentAddressLine',
+    'CurrentAddressMultiLine',
+    'DateOfBirth',
+    'DefaultContactName',
+    'Forenames',
+    'HouseName',
+    'InformalSalutation',
+    'LabelName',
+    'Name',
+    'Number',
+    'OrganisationName',
+    'Postcode',
+    'PreferredForename',
+    'Salutation',
+    'Surname',
+    'TownAddressLine',
+  ];
+  foreach ($redact_fields as $field_name) {
+    if (isset($xml_node->$field_name) && (string) $xml_node->$field_name != '') {
+      $xml_node->$field_name = '--redacted--';
+    }
+  }
+}
+
+/**
+ * Utility function to convert ISO 3166-1 codes to CARE country codes.
+ */
+function care_iso3166_to_country($iso_code) {
+  $care_code = strtoupper($iso_code);
+  $file = fopen(drupal_get_path('module','care') . '/iso_country_mapping.csv', 'r');
+  $header = fgetcsv($file);
+  $care_index = array_search('CARE_code', $header);
+  $iso_index = array_search('ISO' . strlen($iso_code), $header);
+  while (($line = fgetcsv($file)) !== FALSE) {
+    if ($line[$iso_index] == $iso_code) {
+      $care_code = $line[$care_index];
+    }
+  }
+  fclose($file);
+  return $care_code;
+}
+
+/**
+ * Utility function to convert CARE country codes to ISO 3166-1 codes.
+ */
+function care_country_to_iso3166($country_code, $letters = 2) {
+  $country_code = strtoupper($country_code);
+  $file = fopen(drupal_get_path('module','care') . '/iso_country_mapping.csv', 'r');
+  $header = fgetcsv($file);
+  $care_index = array_search('CARE_code', $header);
+  $iso_index = array_search('ISO' . $letters, $header);
+  while (($line = fgetcsv($file)) !== FALSE) {
+    if ($line[$care_index] == $country_code) {
+      $country_code = $line[$iso_index];
+    }
+  }
+  fclose($file);
   return $country_code;
 }

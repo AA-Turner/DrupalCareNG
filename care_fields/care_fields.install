@@ -1,0 +1,37 @@
+<?php
+
+/**
+ * @file
+ * Install file.
+ */
+
+function care_fields_uninstall() {
+  variable_del('care_fields_%');
+}
+
+/**
+ * Add device_default to care_email field schema.
+ */
+function care_fields_update_7101(&$sandbox) {
+  $fields = field_info_fields();
+  $schema_column_device_default = [
+    'type' => 'int',
+    'size' => 'tiny',
+    'default' => 0,
+    'not null' => TRUE,
+  ];
+  foreach ($fields as $field_name => $field) {
+    if ($field['type'] == 'care_email' && $field['storage']['type'] == 'field_sql_storage') {
+      foreach ($field['storage']['details']['sql'] as $type => $table_info) {
+        foreach ($table_info as $table_name => $columns) {
+          $column_name = _field_sql_storage_columnname($field_name, 'device_default');
+          db_add_field($table_name, $column_name, $schema_column_device_default);
+          db_add_index($table_name, $column_name, [
+            $column_name,
+          ]);
+        }
+      }
+    }
+  }
+  field_cache_clear();
+}

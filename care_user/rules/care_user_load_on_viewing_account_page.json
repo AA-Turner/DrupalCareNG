@@ -1,0 +1,10 @@
+{ "care_user_load_on_viewing_account_page" : {
+    "LABEL" : "Load data from CARE on viewing account page",
+    "PLUGIN" : "reaction rule",
+    "OWNER" : "rules",
+    "TAGS" : [ "CARE integration" ],
+    "REQUIRES" : [ "care_user", "rules" ],
+    "ON" : { "user_view" : [] },
+    "DO" : [ { "care_user_fetch_all" : { "account" : [ "account" ] } } ]
+  }
+}

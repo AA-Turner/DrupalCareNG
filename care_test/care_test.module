@@ -1,0 +1,107 @@
+<?php
+
+/**
+ * Implements hook_form_alter().
+ */
+function care_test_form_alter(&$form, &$form_state, $form_id) {
+  drupal_set_message($form_id);
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function care_test_form_care_call_form_alter(&$form, &$form_state) {
+  // Add additional (potentially dangerous) method options.
+  $form['method']['#options']['SelectContactData'] = t('SelectContactData (!doc)', [
+    '!doc' => l(t('Documentation'), $doc_root . '/SelectContactData.htm'),
+  ]);
+  $form['method']['#options']['GetLookupData'] = t('GetLookupData (!doc)', [
+    '!doc' => l(t('Documentation'), $doc_root . '/GetLookupData.htm'),
+  ]);
+  $form['method']['#options']['FindContacts'] = t('FindContacts (!doc)', [
+    '!doc' => l(t('Documentation'), $doc_root . '/FindContacts.htm'),
+  ]);
+  $form['method']['#options']['FindMembers'] = t('FindMembers (!doc)', [
+    '!doc' => l(t('Documentation'), $doc_root . '/FindMembers.htm'),
+  ]);
+  $form['method']['#options']['other'] = t('Other');
+  $form['selectcontactdata_type'] = [
+    '#title' => t('SelectDataType'),
+    '#type' => 'textfield',
+    '#default_value' => $form_state['values']['selectcontactdata_type'],
+    '#states' => [
+      'visible' => [
+        ':input[name="method"]' => [
+          'value' => 'SelectContactData',
+        ],
+      ],
+    ],
+  ];
+  $form['getlookupdata_type'] = [
+    '#title' => t('LookupDataType'),
+    '#type' => 'textfield',
+    '#default_value' => $form_state['values']['getlookupdata_type'],
+    '#states' => [
+      'visible' => [
+        ':input[name="method"]' => [
+          'value' => 'GetLookupData',
+        ],
+      ],
+    ],
+  ];
+  $form['other_method'] = [
+    '#title' => t('Method Name'),
+    '#type' => 'textfield',
+    '#default_value' => $form_state['values']['other_method'],
+    '#states' => [
+      'visible' => [
+        ':input[name="method"]' => [
+          'value' => 'other',
+        ],
+      ],
+    ],
+  ];
+  $form['other_type_name'] = [
+    '#title' => t('Data Type Name'),
+    '#type' => 'radios',
+    '#options' => [
+      'pSelectDataType' => 'SelectDataType',
+      'pDataType' => 'DataType',
+    ],
+    '#description' => t('See documentation for the specific method, but this is usually SelectDataType.'),
+    '#default_value' => $form_state['values']['other_type_name'],
+    '#states' => [
+      'visible' => [
+        ':input[name="method"]' => [
+          'value' => 'other',
+        ],
+      ],
+    ],
+  ];
+  $form['other_type_value'] = [
+    '#title' => t('Data Type Value'),
+    '#type' => 'textfield',
+    '#default_value' => $form_state['values']['other_type_value'],
+    '#states' => [
+      'visible' => [
+        ':input[name="method"]' => [
+          'value' => 'other',
+        ],
+      ],
+    ],
+  ];
+  $form['parameters'] = [
+    '#title' => t('XMLParameters'),
+    '#description' => t('Enter parameters and values one per line, separated by a colon.'),
+    '#type' => 'textarea',
+    '#default_value' => $form_state['values']['parameters'],
+    '#states' => [
+      'invisible' => [
+        ':input[name="method"]' => [
+          'value' => 'GetVersionNumber',
+        ],
+      ],
+    ],
+  ];
+  unset($form['install_care_test']);
+}

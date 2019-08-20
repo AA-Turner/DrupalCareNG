@@ -1,0 +1,9 @@
+name = "CARE Taxonomy"
+description = "Integrates CARE classifications with Drupal taxonomy vocabularies."
+package = CARE
+core = 7.x
+
+dependencies[] = care
+dependencies[] = taxonomy
+
+configure = admin/structure/taxonomy/care
