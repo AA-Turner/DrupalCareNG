@@ -7,4 +7,4 @@ care_test_ntlm_password: ''
 care_database_to_use: test
 care_doc_root: http://127.0.0.1/careservices/documentation
 care_log_calls: FALSE
-care_log_results: redact
+care_log_results: redacted

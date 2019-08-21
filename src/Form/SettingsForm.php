@@ -42,6 +42,22 @@ class SettingsForm extends ConfigFormBase {
       ],
     ];
 
+    $form['care_test wsdl_url'] = [
+      '#title' => t('CARE test WSDL URL'),
+      '#type' => 'textfield',
+      '#description' => t('Use the button below to test the test URL without saving it.'),
+      '#length' => 50,
+      '#default_value' => $config->get('care_test_wsdl_url'),
+    ];
+
+    $form['test_test_wsdl'] = [
+      '#value' => t('Test test WSDL URL'),
+      '#type' => 'submit',
+      '#submit' => [
+        '::testTestWsdl',
+      ],
+    ];
+
     $form['care_doc_root'] = [
       '#title' => t('CARE documentation URL'),
       '#type' => 'textfield',
@@ -69,8 +85,9 @@ class SettingsForm extends ConfigFormBase {
       '#title' => 'Log results from CARE',
       '#type' => 'radios',
       '#options' => [
-        1 => 'Yes',
-        0 => 'No',
+        'full' => 'Full',
+        'redacted' => 'Redacted',
+        'none' => 'No results logging',
       ],
       '#default_value' => $config->get('care_log_results'),
     ];
@@ -102,6 +119,9 @@ class SettingsForm extends ConfigFormBase {
     parent::submitForm($form, $form_state);
     $this->config('care.settings')
       ->set('care_wsdl_url', $form_state->getValue('care_wsdl_url'))
+      ->save();
+    $this->config('care.settings')
+      ->set('care_test_wsdl_url', $form_state->getValue('care_test_wsdl_url'))
       ->save();
     $this->config('care.settings')
       ->set('care_doc_root', $form_state->getValue('care_doc_root'))
@@ -143,6 +163,32 @@ class SettingsForm extends ConfigFormBase {
     }
     catch (Exception $e) {
       $this->messenger()->addError(t('CARE WSDL URL %url failed.', [
+        '%url' => $url,
+      ]));
+      $this->messenger()->addError(t('Reverted to previous value.'));
+    }
+  }
+
+  /**
+   * Test that the supplied WSDL URL works for SoapClient.
+   *
+   * @noinspection PhpUnused
+   *
+   * @param array $form
+   * @param FormStateInterface $form_state
+   */
+  public function testTestWsdl(array &$form, FormStateInterface $form_state) {
+    $url = $form_state->getValue('care_test_wsdl_url');
+    try {
+      /** @noinspection PhpUnusedLocalVariableInspection */
+      $client = @new SoapClient($url);
+      $this->messenger()->addMessage(t('CARE test WSDL URL %url is OK.', [
+        '%url' => $url,
+      ]));
+      $this->submitForm($form, $form_state);
+    }
+    catch (Exception $e) {
+      $this->messenger()->addError(t('CARE test WSDL URL %url failed.', [
         '%url' => $url,
       ]));
       $this->messenger()->addError(t('Reverted to previous value.'));

@@ -30,5 +30,5 @@ care.settings:
       type: boolean
       label: 'Whether to log calls to CARE with Watchdog.'      
     care_log_results:
-      type: boolean
+      type: string
       label: 'Whether to log call results from CARE with Watchdog.'      
