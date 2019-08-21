@@ -134,17 +134,18 @@ class SettingsForm extends ConfigFormBase {
   public function testWsdl(array &$form, FormStateInterface $form_state) {
     $url = $form_state->getValue('care_wsdl_url');
     try {
+      /** @noinspection PhpUnusedLocalVariableInspection */
       $client = @new SoapClient($url);
-      drupal_set_message(t('CARE WSDL URL %url is OK.', array(
+      $this->messenger()->addMessage(t('CARE WSDL URL %url is OK.', [
         '%url' => $url,
       ]));
       $this->submitForm($form, $form_state);
     }
     catch (Exception $e) {
-      drupal_set_message(t('CARE WSDL URL %url failed.', array(
+      $this->messenger()->addError(t('CARE WSDL URL %url failed.', [
         '%url' => $url,
-      )), 'error');
-      drupal_set_message(t('Reverted to previous value.'), 'error');
+      ]));
+      $this->messenger()->addError(t('Reverted to previous value.'));
     }
   }
 
