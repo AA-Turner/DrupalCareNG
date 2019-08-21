@@ -1,6 +1,27 @@
 <?php
 
-class NtlmStream {
+interface NtlmStreamWrapperInterface {
+
+  public function stream_open(string $path, string $mode, int $options, string &$opened_path);
+
+  public function stream_read(int $count);
+
+  public function stream_stat();
+
+  public function url_stat(string $path, int $flags);
+
+  public function stream_eof();
+
+  public function stream_tell();
+
+  public function stream_flush();
+
+  public function stream_close();
+}
+
+class NtlmStream implements NtlmStreamWrapperInterface {
+
+  private $ch;
 
   private $path;
 
@@ -23,21 +44,20 @@ class NtlmStream {
     self::$password = $password;
   }
 
-  public static function getUserPass() {
-    return [self::$user, self::$password];
-  }
-
   /**
    * Open the stream
    *
-   * @param unknown_type $path
-   * @param unknown_type $mode
-   * @param unknown_type $options
-   * @param unknown_type $opened_path
+   * @param string $path
+   *   The URL to open.
+   * @param string $mode
+   *   Mode to use for as for fopen().
+   * @param int $options
    *
-   * @return unknown
+   * @param string $opened_path
+   *
+   * @return bool
    */
-  public function stream_open($path, $mode, $options, $opened_path) {
+  public function stream_open(string $path, string $mode, int $options, string &$opened_path): bool {
     $this->path = $path;
     $this->mode = $mode;
     $this->options = $options;
@@ -57,12 +77,16 @@ class NtlmStream {
   /**
    * Read the stream
    *
-   * @param int $count number of bytes to read
+   * @param int $count
+   *   Number of bytes to read
    *
-   * @return content from pos to count
+   * @return bool|string
+   *   Content from pos to count.
+   *
+   * @noinspection PhpUnused
    */
-  public function stream_read($count) {
-    if (strlen($this->buffer) == 0) {
+  public function stream_read(int $count) {
+    if ($this->buffer === '') {
       return FALSE;
     }
     $read = substr($this->buffer, $this->pos, $count);
@@ -73,38 +97,35 @@ class NtlmStream {
   /**
    * write the stream
    *
-   * @param int $count number of bytes to read
+   * @param string $data
+   *   Data to write to the stream.
    *
-   * @return content from pos to count
+   * @return bool
+   *   Whether we have anything to write.
    */
-  public function stream_write($data) {
-    if (strlen($this->buffer) == 0) {
-      return FALSE;
-    }
-    return TRUE;
-  }
-
+  /*public function stream_write($data) {
+    return !($this->buffer === '');
+  }*/
 
   /**
    *
-   * @return true if eof else false
+   * @return bool
+   *    True if eof else False
    */
-  public function stream_eof() {
-    if ($this->pos > strlen($this->buffer)) {
-      return TRUE;
-    }
-    return FALSE;
+  public function stream_eof(): bool {
+    return $this->pos > strlen($this->buffer);
   }
 
   /**
-   * @return int the position of the current read pointer
+   * @return int
+   *   The position of the current read pointer
    */
-  public function stream_tell() {
+  public function stream_tell(): int {
     return $this->pos;
   }
 
   /**
-   * Flush stream data
+   * Flush stream data.
    */
   public function stream_flush() {
     $this->buffer = NULL;
@@ -114,33 +135,36 @@ class NtlmStream {
   /**
    * Stat the file, return only the size of the buffer
    *
-   * @return array stat information
+   * @return array
+   *   Stat information
    */
-  public function stream_stat() {
+  public function stream_stat(): array {
     $this->createBuffer($this->path);
-    $stat = [
+    return [
       'size' => strlen($this->buffer),
     ];
-    return $stat;
   }
 
   /**
    * Stat the url, return only the size of the buffer
    *
-   * @return array stat information
+   * @param string $path
+   * @param int $flags
+   *
+   * @return array
+   *   Stat information
    */
-  public function url_stat($path, $flags) {
+  public function url_stat(string $path, int $flags): array {
     $this->createBuffer($path);
-    $stat = [
+    return [
       'size' => strlen($this->buffer),
     ];
-    return $stat;
   }
 
   /**
    * Create the buffer by requesting the url through cURL
    *
-   * @param unknown_type $path
+   * @param string $path
    */
   private function createBuffer($path) {
     if ($this->buffer) {

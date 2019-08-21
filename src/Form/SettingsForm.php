@@ -15,73 +15,73 @@ class SettingsForm extends ConfigFormBase {
   /**
    * {@inheritdoc}
    */
-  public function getFormId() {
+  public function getFormId(): string {
     return 'care_settings_form';
   }
 
   /**
    * {@inheritdoc}
    */
-  public function buildForm(array $form, FormStateInterface $form_state) {
+  public function buildForm(array $form, FormStateInterface $form_state): array {
 
     $config = $this->config('care.settings');
 
-    $form['care_wsdl_url'] = array(
+    $form['care_wsdl_url'] = [
       '#title' => t('CARE WSDL URL'),
       '#type' => 'textfield',
       '#description' => t('Use the button below to test the URL without saving it.'),
       '#length' => 50,
       '#default_value' => $config->get('care_wsdl_url'),
-    );
+    ];
 
-    $form['test_wsdl'] = array(
-      '#value' => t('Test WDSL URL'),
+    $form['test_wsdl'] = [
+      '#value' => t('Test WSDL URL'),
       '#type' => 'submit',
-      '#submit' => array(
+      '#submit' => [
         '::testWsdl',
-      ),
-    );
+      ],
+    ];
 
-    $form['care_doc_root'] = array(
+    $form['care_doc_root'] = [
       '#title' => t('CARE documentation URL'),
       '#type' => 'textfield',
       '#description' => t('Home page for CARE API documentation.'),
       '#length' => 50,
       '#default_value' => $config->get('care_doc_root'),
-    );
+    ];
 
-    $form['logging'] = array(
+    $form['logging'] = [
       '#title' => 'Logging Options',
       '#type' => 'fieldset',
-    );
+    ];
 
-    $form['logging']['care_log_calls'] = array(
+    $form['logging']['care_log_calls'] = [
       '#title' => 'Log calls to CARE',
       '#type' => 'radios',
-      '#options' => array(
+      '#options' => [
         1 => 'Yes',
         0 => 'No',
-      ),
+      ],
       '#default_value' => $config->get('care_log_calls'),
-    );
+    ];
 
-    $form['logging']['care_log_results'] = array(
+    $form['logging']['care_log_results'] = [
       '#title' => 'Log results from CARE',
       '#type' => 'radios',
-      '#options' => array(
+      '#options' => [
         1 => 'Yes',
         0 => 'No',
-      ),
+      ],
       '#default_value' => $config->get('care_log_results'),
-    );
+    ];
 
-    $form['actions'] = array(
+    $form['actions'] = [
       '#type' => 'actions',
-    );
-    $form['actions']['submit'] = array(
+    ];
+    $form['actions']['submit'] = [
       '#type' => 'submit',
       '#value' => $this->t('Save'),
-    );
+    ];
 
     return $form;
   }
@@ -90,8 +90,8 @@ class SettingsForm extends ConfigFormBase {
    * {@inheritdoc}
    */
   public function validateForm(array &$form, FormStateInterface $form_state) {
-    if (strlen($form_state->getValue('care_wsdl_url')) == 0) {
-      $form_state->setErrorByName('care_wsdl_url', $this->t("Please enter a WSDL URL for CARE."));
+    if (trim($form_state->getValue('care_wsdl_url')) === '') {
+      $form_state->setErrorByName('care_wsdl_url', $this->t('Please enter a WSDL URL for CARE.'));
     }
   }
 
@@ -100,23 +100,36 @@ class SettingsForm extends ConfigFormBase {
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     parent::submitForm($form, $form_state);
-    $this->config('care.settings')->set('care_wsdl_url', $form_state->getValue('care_wsdl_url'))->save();
-    $this->config('care.settings')->set('care_doc_root', $form_state->getValue('care_doc_root'))->save();
-    $this->config('care.settings')->set('care_log_calls', $form_state->getValue('care_log_calls'))->save();
-    $this->config('care.settings')->set('care_log_results', $form_state->getValue('care_log_results'))->save();
+    $this->config('care.settings')
+      ->set('care_wsdl_url', $form_state->getValue('care_wsdl_url'))
+      ->save();
+    $this->config('care.settings')
+      ->set('care_doc_root', $form_state->getValue('care_doc_root'))
+      ->save();
+    $this->config('care.settings')
+      ->set('care_log_calls', $form_state->getValue('care_log_calls'))
+      ->save();
+    $this->config('care.settings')
+      ->set('care_log_results', $form_state->getValue('care_log_results'))
+      ->save();
   }
 
   /**
    * {@inheritdoc}
    */
-  protected function getEditableConfigNames() {
-    return array(
+  protected function getEditableConfigNames(): array {
+    return [
       'care.settings',
-    );
+    ];
   }
 
   /**
    * Test that the supplied WSDL URL works for SoapClient.
+   *
+   * @noinspection PhpUnused
+   *
+   * @param array $form
+   * @param FormStateInterface $form_state
    */
   public function testWsdl(array &$form, FormStateInterface $form_state) {
     $url = $form_state->getValue('care_wsdl_url');
@@ -124,7 +137,7 @@ class SettingsForm extends ConfigFormBase {
       $client = @new SoapClient($url);
       drupal_set_message(t('CARE WSDL URL %url is OK.', array(
         '%url' => $url,
-      )));
+      ]));
       $this->submitForm($form, $form_state);
     }
     catch (Exception $e) {

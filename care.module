@@ -15,53 +15,55 @@ define('IGNORE_ERRORS', TRUE);
  * calls, unless the $ignore_care_errors optional argument is set to
  * IGNORE_ERRORS.
  *
- * @param string $methodname
+ * @param string $method_name
  *   The name of the SOAP method to call, e.g. "AddContact".
  * @param array $data
  *   A PHP associative array of parameter data, e.g.
  *     array('Title' => 'Mr', 'Forenames' => 'Fred').
- * @param array $typedata
+ * @param array $type_data
  *   An optional CARE type and name for the method, if needed, e.g.
  *     array('pSelectDataType' => 'xcdtContactMembershipDetails')
  * @param bool $ignore_care_errors
  *   Set to TRUE if CARE errors should be ignored and not logged.
  *
  * @return SimpleXMLElement
- *   Containg the result, or an object with an ErrorMessage in the case of any
+ *   Containing the result, or an object with an ErrorMessage in the case of any
  *   failure.
  */
-function care_call_method($methodname, array $data = [], array $typedata = NULL, $ignore_care_errors = FALSE) {
+function care_call_method($method_name, array $data = [], array $type_data = NULL, $ignore_care_errors = FALSE) {
   // Store client object for later calls.
   static $client = NULL;
-  $log_calls = Drupal::config('care.settings')->get('care_log_calls');
-  $log_results = Drupal::config('care.settings')->get('care_log_results');
+  $settings = Drupal::config('care.settings');
+  $log_calls = $settings->get('care_log_calls');
+  $log_results = $settings->get('care_log_results');
+  $log = Drupal::logger('care');
   // Don't wait for connection to time out again if it previously failed.
   static $connection_failed = FALSE;
-  $resultxml = new SimpleXMLElement('<xml></xml>');
+  $result_xml = new SimpleXMLElement('<xml></xml>');
   if ($connection_failed) {
-    Drupal::logger('care')->error('Error: skipped CARE call as a previous call failed to connect');
-    $resultxml->ErrorMessage = t('Error: skipped CARE call as a previous call failed to connect');
-    return $resultxml;
+    $log->error('Error: skipped CARE call as a previous call failed to connect');
+    $result_xml->addChild('ErrorMessage', t('Error: skipped CARE call as a previous call failed to connect'));
+    return $result_xml;
   }
   // Create a SOAP client object for CARE if not already done.
   if (!$client) {
-    if (Drupal::config('care.settings')->get('care_database_to_use') == 'test') {
-      $service_address_url = Drupal::config('care.settings')->get('care_test_wsdl_url');
-      $service_username = Drupal::config('care.settings')->get('care_test_ntlm_username');
-      $service_password = Drupal::config('care.settings')->get('care_test_ntlm_password');
+    if ($settings->get('care_database_to_use') === 'test') {
+      $service_address_url = $settings->get('care_test_wsdl_url');
+      $service_username = $settings->get('care_test_ntlm_username');
+      $service_password = $settings->get('care_test_ntlm_password');
     }
     else {
-      $service_address_url = Drupal::config('care.settings')->get('care_wsdl_url');
-      $service_username = Drupal::config('care.settings')->get('care_ntlm_username');
-      $service_password = Drupal::config('care.settings')->get('care_ntlm_password');
+      $service_address_url = $settings->get('care_wsdl_url');
+      $service_username = $settings->get('care_ntlm_username');
+      $service_password = $settings->get('care_ntlm_password');
     }
-    $soap_options = array(
+    $soap_options = [
       'wsdl_cache' => WSDL_CACHE_BOTH,
-    );
+    ];
     if ($log_results) {
-      $soap_options += array(
+      $soap_options += [
         'trace' => TRUE,
-      );
+      ];
     }
     try {
       if (class_exists('SoapClient')) {
@@ -77,16 +79,16 @@ function care_call_method($methodname, array $data = [], array $typedata = NULL,
       }
     }
     catch (Exception $e) {
-      Drupal::logger('care')->error('Error: @message', array(
+      $log->error('Error: @message', [
         '@message' => $e->getMessage(),
-      ));
+      ]);
       $connection_failed = TRUE;
-      $resultxml->ErrorMessage = 'Failed to connect: ' . $e->getMessage();
-      return $resultxml;
+      $result_xml->addChild('ErrorMessage', 'Failed to connect: ' . $e->getMessage());
+      return $result_xml;
     }
   }
   // Create new SimpleXML element.
-  $xml = new SimpleXMLElement("<Parameters></Parameters>");
+  $xml = new SimpleXMLElement('<Parameters></Parameters>');
   // Add parameters with values as XML child elements.
   foreach ($data as $parameter => $value) {
     if ($parameter) {
@@ -95,96 +97,104 @@ function care_call_method($methodname, array $data = [], array $typedata = NULL,
       $xml->addChild($parameter, $value);
     }
     else {
-      Drupal::logger('care')->warning('Missing parameter name (PHP array key) for parameter for !method call. Data array: !data', array(
-        '!method' => $methodname,
+      $log->warning('Missing parameter name (PHP array key) for parameter for !method call. Data array: !data', [
+        '!method' => $method_name,
         '!data' => print_r($data, TRUE),
-      ));
+      ]);
     }
   }
 
   // Call the SOAP method.
   try {
-    if (is_array($typedata)) {
+    if (is_array($type_data)) {
       // Call typed care method, two arguments.
-      $typetype = key($typedata);
-      $typename = $typedata[$typetype];
-      if ($log_calls != 'none')) {
-        Drupal::logger('care')->notice('@method call: <pre>@params</pre>', array(
-          '@method' => $methodname,
-          '@params' => _care_pretty_xml($xml, ($log_results != 'full')),
-        ));
+      $type_type = key($type_data);
+      $typename = $type_data[$type_type];
+      if ($log_calls !== 'none') {
+        $log->notice('@method call: <pre>@params</pre>', [
+          '@method' => $method_name,
+          '@params' => _care_pretty_xml($xml, $log_results !== 'full'),
+        ]);
       }
-      $result = $client->$methodname([
-        $typetype => $typename,
+      $result = $client->$method_name([
+        $type_type => $typename,
         'pXMLParams' => $xml->asXML(),
       ]);
       // Return the result as a new SimpleXML element.
-      $resultname = $methodname . 'Result';
-      $resultxml = new SimpleXMLElement($result->$resultname);
-      if ($log_results != 'none')) {
-        Drupal::logger('care')->notice('@method result (@size): <pre>@result</pre>', array(
-          '@method' => $methodname,
+      $result_name = $method_name . 'Result';
+      $result_xml = new SimpleXMLElement($result->$result_name);
+      if ($log_results !== 'none') {
+        $log->notice('@method result (@size): <pre>@result</pre>', [
+          '@method' => $method_name,
           '@size' => format_size(strlen($client->__getLastResponse())),
-          '@result' => _care_pretty_xml($resultxml, ($log_results != 'full')),
-        ));
+          '@result' => _care_pretty_xml($result_xml, $log_results !== 'full'),
+        ]);
       }
     }
     else {
       // Call simple care method, one argument.
-      if ($log_calls != 'none')) {
-        Drupal::logger('care')->notice('@method call: <pre>@params</pre>', [
-          '@method' => $methodname,
+      if ($log_calls !== 'none') {
+        $log->notice('@method call: <pre>@params</pre>', [
+          '@method' => $method_name,
           '@params' => _care_pretty_xml($xml),
         ]);
       }
-      $result = $client->$methodname([
+      $result = $client->$method_name([
         'pXMLParams' => $xml->asXML(),
       ]);
       // Return the result as a new SimpleXML element.
-      $resultname = $methodname . 'Result';
-      $resultxml = new SimpleXMLElement($result->$resultname);
-      if ($log_results != 'none') {
-        Drupal::logger('care')->notice('@method result (@size): <pre>@result</pre>', [
-          '@method' => $methodname,
+      $result_name = $method_name . 'Result';
+      $result_xml = new SimpleXMLElement($result->$result_name);
+      if ($log_results !== 'none') {
+        $log->notice('@method result (@size): <pre>@result</pre>', [
+          '@method' => $method_name,
           '@size' => format_size(strlen($client->__getLastResponse())),
-          '@result' => _care_pretty_xml($resultxml, ($log_results != 'full')),
+          '@result' => _care_pretty_xml($result_xml, $log_results !== 'full'),
         ]);
       }
     }
   }
   catch (Exception $e) {
-    Drupal::logger('care')->error('CARE Error: @message', [
+    $log->error('CARE Error: @message', [
       '@message' => $e->getMessage(),
     ]);
-    $resultxml->ErrorMessage = $e->getMessage();
-    return $resultxml;
+    $result_xml->addChild('ErrorMessage', $e->getMessage());
+    return $result_xml;
   }
 
   // Log any CARE error results.
-  if (!$ignore_care_errors && isset($resultxml->ErrorMessage)) {
-    Drupal::logger('care')->error('@method Error: @message', [
-      '@method' => $methodname,
-      '@message' => (string) $resultxml->ErrorMessage,
+  if (!$ignore_care_errors && isset($result_xml->ErrorMessage)) {
+    $log->error('@method Error: @message', [
+      '@method' => $method_name,
+      '@message' => (string) $result_xml->ErrorMessage,
     ]);
   }
 
-  return $resultxml;
+  return $result_xml;
 }
 
 /**
  * Private function to pretty-print XML from a SimpleXML object.
+ *
+ * @param \SimpleXMLElement $xml
+ *   XML data to pretty-print.
+ * @param bool $redact
+ *   Whether to redact/hide personal information.
+ *
+ * @return string
+ *   Pretty-printed XML.
  */
 function _care_pretty_xml(SimpleXMLElement $xml, $redact = TRUE) {
   if ($redact) {
-    $xml = clone($xml);
+    $xml = clone $xml;
     _care_redact_xml_tree($xml);
   }
   if (extension_loaded('dom')) {
     $doc = new DOMDocument('1.0');
     $doc->formatOutput = TRUE;
-    $domnode = dom_import_simplexml($xml);
-    $domnode = $doc->importNode($domnode, TRUE);
-    $domnode = $doc->appendChild($domnode);
+    $dom_node = dom_import_simplexml($xml);
+    $dom_node = $doc->importNode($dom_node, TRUE);
+    $doc->appendChild($dom_node);
     $output = $doc->saveXML();
   }
   else {
@@ -193,7 +203,7 @@ function _care_pretty_xml(SimpleXMLElement $xml, $redact = TRUE) {
   return $output;
 }
 
-function _care_redact_xml_tree($xml_node) {
+function _care_redact_xml_tree(SimpleXMLElement $xml_node) {
   foreach ($xml_node->children() as $child) {
     _care_redact_xml_tree($child);
   }
@@ -209,7 +219,7 @@ function _care_redact_xml_tree($xml_node) {
     'PaymentPlanNumber',
   ];
   foreach ($obfuscate_fields as $field_name) {
-    if (isset($xml_node->$field_name) && (string) $xml_node->$field_name != '') {
+    if (isset($xml_node->$field_name) && (string) $xml_node->$field_name !== '') {
       $xml_node->$field_name = substr($xml_node->$field_name, 0, -5) . 'xxxx' . substr($xml_node->$field_name, -1);
     }
   }
@@ -239,7 +249,7 @@ function _care_redact_xml_tree($xml_node) {
     'TownAddressLine',
   ];
   foreach ($redact_fields as $field_name) {
-    if (isset($xml_node->$field_name) && (string) $xml_node->$field_name != '') {
+    if (isset($xml_node->$field_name) && (string) $xml_node->$field_name !== '') {
       $xml_node->$field_name = '--redacted--';
     }
   }
@@ -247,36 +257,58 @@ function _care_redact_xml_tree($xml_node) {
 
 /**
  * Utility function to convert ISO 3166-1 codes to CARE country codes.
+ *
+ * @noinspection PhpUnused
+ *
+ * @param string $iso_code
+ *   The ISO code to convert into a CARE country code.
+ *
+ * @return string
+ *   The CARE country code.
  */
 function care_iso3166_to_country($iso_code) {
-  $care_code = strtoupper($iso_code);
-  $file = fopen(drupal_get_path('module','care') . '/iso_country_mapping.csv', 'r');
-  $header = fgetcsv($file);
-  $care_index = array_search('CARE_code', $header);
-  $iso_index = array_search('ISO' . strlen($iso_code), $header);
-  while (($line = fgetcsv($file)) !== FALSE) {
-    if ($line[$iso_index] == $iso_code) {
-      $care_code = $line[$care_index];
-    }
-  }
-  fclose($file);
-  return $care_code;
+  return _care_lookup_code($iso_code, 'ISO' . strlen($iso_code), 'CARE_code');
 }
 
 /**
  * Utility function to convert CARE country codes to ISO 3166-1 codes.
+ *
+ * @noinspection PhpUnused
+ *
+ * @param string $country_code
+ *   The CARE country code to convert.
+ * @param int $letters
+ *   The length of the required ISO code in letters.
+ *
+ * @return string
+ *   The ISO code.
  */
 function care_country_to_iso3166($country_code, $letters = 2) {
-  $country_code = strtoupper($country_code);
-  $file = fopen(drupal_get_path('module','care') . '/iso_country_mapping.csv', 'r');
+  return _care_lookup_code($country_code, 'CARE_code', 'ISO' . $letters);
+}
+
+/**
+ * @param string $code
+ *   The code to convert.
+ * @param string $from
+ *   The column to look for the code in.
+ * @param string $to
+ *   The column containing the converted code.
+ *
+ * @return string
+ *   The converted code.
+ */
+function _care_lookup_code($code, $from, $to) {
+  $to_code = '';
+  $file = fopen(drupal_get_path('module', 'care') . '/iso_country_mapping.csv', 'rb');
   $header = fgetcsv($file);
-  $care_index = array_search('CARE_code', $header);
-  $iso_index = array_search('ISO' . $letters, $header);
+  $from_index = array_search($from, $header, TRUE);
+  $to_index = array_search($to, $header, TRUE);
   while (($line = fgetcsv($file)) !== FALSE) {
-    if ($line[$care_index] == $country_code) {
-      $country_code = $line[$iso_index];
+    if ($line[$from_index] === $code) {
+      $to_code = $line[$to_index];
     }
   }
   fclose($file);
-  return $country_code;
+  return $to_code;
 }

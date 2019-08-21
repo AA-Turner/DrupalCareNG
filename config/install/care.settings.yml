@@ -1,4 +1,10 @@
-care_wsdl_url: http://127.0.0.1/careservices/dataaccess.asmx?WSDL
+care_wsdl_url: http://live.example.com/careservices/dataaccess.asmx?WSDL
+care_ntlm_username:
+care_ntlm_password:
+care_test_wsdl_url: http://test.example.com/careservices/dataaccess.asmx?WSDL
+care_test_ntlm_username:
+care_test_ntlm_password:
+care_database_to_use: test
 care_doc_root: http://127.0.0.1/careservices/documentation
 care_log_calls: FALSE
-care_log_results: FALSE
+care_log_results: redact
