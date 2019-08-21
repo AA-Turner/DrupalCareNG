@@ -5,6 +5,24 @@ care.settings:
     care_wsdl_url:
       type: uri
       label: 'URL for the CARE WSDL.'
+    care_ntlm_username:
+      type: string
+      label: 'NTLM username (optional).'
+    care_ntlm_password:
+      type: string
+      label: 'NTLM password (optional).'
+    care_test_wsdl_url:
+      type: uri
+      label: 'URL for the CARE testing database WSDL.'
+    care_test_ntlm_username:
+      type: string
+      label: 'NTLM username for testing (optional).'
+    care_test_ntlm_password:
+      type: string
+      label: 'Test NTLM password for testing (optional).'
+    care_database_to_use:
+      type: string
+      label: 'Which CARE database to use.'
     care_doc_root:
       type: uri
       label: 'URL for the CARE documentation index.'
