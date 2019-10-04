@@ -21,6 +21,14 @@ class NtlmSoapClient extends SoapClient {
    */
   protected $options;
 
+  private $__last_request_headers;
+
+  private $__last_request;
+
+  private $__last_response_headers;
+
+  private $__last_response;
+
   /**
    * {@inheritdoc}
    *
@@ -41,7 +49,7 @@ class NtlmSoapClient extends SoapClient {
     $this->options = $options;
     // Verify that a user name and password were entered.
     if (empty($options['user']) || empty($options['password'])) {
-      throw new \BadMethodCallException(
+      throw new BadMethodCallException(
         'A username and password is required.'
       );
     }
@@ -56,13 +64,13 @@ class NtlmSoapClient extends SoapClient {
             . $this->options['password'],
         ];
       curl_setopt_array($this->ch, $options);
-      $response = curl_exec($this->ch);
+      curl_exec($this->ch);
       $info = curl_getinfo($this->ch);
-      if ($info['http_code'] == 302) {
+      if ((int) $info['http_code'] === 302) {
         throw new RuntimeException(
           t('HTTP 302: WSDL URL was redirected to %url.', ['%url' => $info['redirect_url']]));
       }
-      elseif ($info['http_code'] == 401) {
+      if ((int) $info['http_code'] === 401) {
         throw new RuntimeException(
           t('HTTP 401: Unauthorized: Access is denied due to invalid NTLM credentials.'));
       }
@@ -81,20 +89,19 @@ class NtlmSoapClient extends SoapClient {
   }
 
   /**
-   * {@inheritdoc}
+   * @inheritdoc
    */
-  public function __doRequest($request, $location, $action, $version, $one_way = 0) {
+  public function __doRequest($request, $location, $action, $version, $one_way = 0): string {
     $headers = $this->buildHeaders($action);
     $this->__last_request = $request;
     $this->__last_request_headers = $headers;
     // Only reinitialize curl handle if the location is different.
     if (!$this->ch
-      || curl_getinfo($this->ch, CURLINFO_EFFECTIVE_URL) != $location) {
+      || curl_getinfo($this->ch, CURLINFO_EFFECTIVE_URL) !== $location) {
       $this->ch = curl_init($location);
     }
     curl_setopt_array($this->ch, $this->curlOptions($action, $request));
     $response = curl_exec($this->ch);
-    // TODO: Add some real error handling.
     // If the response if false than there was an error and we should throw
     // an exception.
     if ($response === FALSE) {
@@ -105,7 +112,7 @@ class NtlmSoapClient extends SoapClient {
       );
     }
     $info = curl_getinfo($this->ch);
-    if ($info['http_code'] == 401) {
+    if ((int) $info['http_code'] === 401) {
       throw new RuntimeException(
         'Unauthorized: Access is denied due to invalid credentials.'
       );
@@ -117,27 +124,8 @@ class NtlmSoapClient extends SoapClient {
   /**
    * {@inheritdoc}
    */
-  public function __getLastRequestHeaders() {
+  public function __getLastRequestHeaders(): string {
     return implode("\n", $this->__last_request_headers) . "\n";
-  }
-
-  /**
-   * Returns the response code from the last request
-   *
-   * @return integer
-   *
-   * @throws \BadMethodCallException
-   *   If no cURL resource has been initialized.
-   */
-
-  public function getResponseCode() {
-    if (empty($this->ch)) {
-      throw new \BadMethodCallException('No cURL resource has been '
-        . 'initialized. This is probably because no request has yet '
-        . 'been made.');
-    }
-
-    return curl_getinfo($this->ch, CURLINFO_HTTP_CODE);
   }
 
   /**
@@ -145,9 +133,10 @@ class NtlmSoapClient extends SoapClient {
    *
    * @param string $action
    *   The SOAP action to be performed.
+   *
+   * @return array HTTP headers.
    */
-
-  protected function buildHeaders($action) {
+  protected function buildHeaders($action): array {
     return [
       'Method: POST',
       'Connection: Keep-Alive',
@@ -169,7 +158,7 @@ class NtlmSoapClient extends SoapClient {
    * @return array
    *   Array of curl options.
    */
-  protected function curlOptions($action, $request) {
+  protected function curlOptions($action, $request): array {
     $options = $this->options['curlopts'] + [
         CURLOPT_RETURNTRANSFER => TRUE,
         CURLOPT_HTTPHEADER => $this->buildHeaders($action),

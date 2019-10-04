@@ -7,6 +7,10 @@
 
 /**
  * Field instance settings form.
+ *
+ * @param $settings
+ *
+ * @return array
  */
 function _care_fields_activity_instance_settings_form($settings) {
   $form = [];
@@ -22,9 +26,8 @@ function _care_fields_activity_instance_settings_form($settings) {
   ];
   $vocabularies = taxonomy_get_vocabularies();
   $vocabulary_options = [];
-  // ToDO: Add vocab descr.
   foreach ($vocabularies as $vid => $vocabulary) {
-    if (substr($vocabulary->machine_name, 0, 22) == 'care_taxonomy_activity') {
+    if (strpos($vocabulary->machine_name, 'care_taxonomy_activity') === 0) {
       $vocabulary_options[$vid] = $vocabulary->name;
     }
   }
@@ -43,14 +46,13 @@ function _care_fields_activity_instance_settings_form($settings) {
  * Very like options_field_widget_form from options.module.
  *
  * @noinspection PhpUnused
+ * @inheritDoc
  */
-function _care_fields_activity_form(&$element, $form_state, $field, $instance, $items, $delta) {
+function _care_fields_activity_form(&$element, /** @noinspection PhpUnusedParameterInspection */ $form_state, $field, $instance, $items, $delta) {
   $value_key = key($field['columns']);
 
-  $type = 'buttons';
-  $multiple = $field['cardinality'] > 1 || $field['cardinality'] == FIELD_CARDINALITY_UNLIMITED;
+  $multiple = $field['cardinality'] > 1 || $field['cardinality'] === FIELD_CARDINALITY_UNLIMITED;
   $required = $element['#required'];
-  $has_value = isset($items[0][$value_key]);
 
   // Set widget rendering properties.
   // $properties = _options_properties($type, $multiple, $required, $has_value);
@@ -73,7 +75,7 @@ function _care_fields_activity_form(&$element, $form_state, $field, $instance, $
   $default_value = _options_storage_to_form($items, $options, $value_key, $properties);
 
   // If required and there is one single option, preselect it.
-  if ($required && count($options) == 1) {
+  if ($required && count($options) === 1) {
     reset($options);
     $default_value = [key($options)];
   }
@@ -103,7 +105,7 @@ function _care_fields_activity_form(&$element, $form_state, $field, $instance, $
 
   $element['local_unsent_changes'] = [
     '#type' => 'value',
-    '#value' => isset($items[$delta]['local_unsent_changes']) ? $items[$delta]['local_unsent_changes'] : CARE_FIELDS_UNCHANGED,
+    '#value' => $items[$delta]['local_unsent_changes'] ?? CARE_FIELDS_UNCHANGED,
   ];
 
   return $element;
@@ -113,13 +115,14 @@ function _care_fields_activity_form(&$element, $form_state, $field, $instance, $
  * Form validation.
  *
  * @noinspection PhpUnused
+ * @inheritDoc
  */
 function care_fields_field_widget_activity_validate(&$element, &$form_state) {
-  if ($element['#required'] && $element['#value'] == '_none') {
+  if ($element['#required'] && $element['#value'] === '_none') {
     form_error($element, t('!name field is required.', ['!name' => $element['#title']]));
   }
   // Set local_unsent_changes if #value not same as #default_value.
-  if ($element['activity']['#value'] != $element['activity']['#default_value']) {
+  if ($element['activity']['#value'] !== $element['activity']['#default_value']) {
     form_set_value($element['local_unsent_changes'], CARE_FIELDS_CHANGED, $form_state);
   }
   // Transpose selections from field => delta to delta => field, turning
@@ -133,15 +136,26 @@ function care_fields_field_widget_activity_validate(&$element, &$form_state) {
 
 /**
  * Field-is-empty test.
+ *
+ * @noinspection PhpUnused
+ * @inheritDoc
  */
-function _care_fields_activity_field_is_empty($item, $field) {
+function _care_fields_activity_field_is_empty(/** @noinspection PhpUnusedParameterInspection  */ $item, $field) {
   return FALSE;
 }
 
 /**
  * Display formatter.
+ *
+ * @noinspection PhpUnused
+ *
+ * @param $delta
+ * @param $item
+ * @param $instance
+ *
+ * @return array
  */
-function _care_fields_care_activity_formatter($delta, $item, $instance) {
+function _care_fields_care_activity_formatter($delta, $item, /** @noinspection PhpUnusedParameterInspection */ $instance) {
   $element = [];
   $element[$delta]['#markup'] = check_plain($item['activity']);
   return $element;
@@ -149,6 +163,8 @@ function _care_fields_care_activity_formatter($delta, $item, $instance) {
 
 /**
  * Field database schema.
+ *
+ * @noinspection PhpUnused
  */
 function _care_fields_care_activity_schema() {
   $schema['columns']['activity'] = [
@@ -168,8 +184,13 @@ function _care_fields_care_activity_schema() {
 
 /**
  * Entity integration.
+ *
+ * Implements hook_property_info_callback().
+ *
+ * @noinspection PhpUnused
+ * @inheritDoc
  */
-function care_fields_activity_property_info_callback(&$info, $entity_type, $field, $instance, $field_type) {
+function care_fields_activity_property_info_callback(&$info, $entity_type, $field, $instance, /** @noinspection PhpUnusedParameterInspection */ $field_type) {
   $property = &$info[$entity_type]['bundles'][$instance['bundle']]['properties'][$field['field_name']];
   $property['getter callback'] = 'entity_metadata_field_verbatim_get';
   $property['setter callback'] = 'entity_metadata_field_verbatim_set';
