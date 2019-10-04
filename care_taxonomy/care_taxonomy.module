@@ -2,6 +2,8 @@
 
 /**
  * Implements hook_permission().
+ *
+ * @noinspection PhpUnused
  */
 function care_taxonomy_permission() {
   return [
@@ -14,6 +16,8 @@ function care_taxonomy_permission() {
 
 /**
  * Implements hook_menu().
+ *
+ * @noinspection PhpUnused
  */
 function care_taxonomy_menu() {
   $items['admin/structure/taxonomy/care'] = [
@@ -39,7 +43,13 @@ function care_taxonomy_menu() {
 function care_taxonomy_cron() {
   $now = new DateTime();
   if ($now->format('H') >= '03') {
-    $last_import = new DateTime(variable_get('care_taxonomy_last_import', '1900-01-01T00:00:00'));
+    try {
+      $last_import = new DateTime(variable_get('care_taxonomy_last_import', '1900-01-01T00:00:00'));
+    }
+    catch (Exception $e) {
+      watchdog_exception('care_taxonomy', $e);
+      return;
+    }
     $interval = $last_import->diff($now);
     $total_days = (int) $interval->format('%a');
     $hours = (int) $interval->format('%h');
@@ -99,8 +109,8 @@ function care_taxonomy_import_activity_codes() {
 /**
  * Import  Activity codes from CARE.
  */
-function care_taxonomy_import_activity_values($activity_code) {
-  $name = "CARE $activity_code activity";
+function care_taxonomy_import_activity_values($activity_code, $activity_description) {
+  $name = "CARE Activity: $activity_description";
   $machine_name = "care_taxonomy_activity_" . strtolower($activity_code);
   $existing_vocabulary = taxonomy_vocabulary_machine_name_load($machine_name);
   if ($existing_vocabulary) {
@@ -172,7 +182,7 @@ function _care_taxonomy_process_terms($vid, $vocabulary_machine_name, $care_resu
     $existing_query->propertyCondition('tid', $sub_query, 'IN');
   }
   $existing_result = $existing_query->execute();
-  $existing_term_ids = $care_result ? $existing_result['taxonomy_term'] : [];
+  $existing_term_ids = $existing_result ? $existing_result['taxonomy_term'] : [];
   foreach ($care_result as $row) {
     $historic = (string) $row->IsHistoric;
     if ($historic == 'N' or !$historic) {
@@ -180,16 +190,24 @@ function _care_taxonomy_process_terms($vid, $vocabulary_machine_name, $care_resu
       $description = (string) $row->$care_description_field;
       $exists = taxonomy_get_term_by_name($code, $vocabulary_machine_name);
       if (count($exists)) {
-        foreach ($exists as $existing) {
-          $existing->description = $description;
-          $existing->format = 'plain_text';
-          if (isset($existing->status) && $existing->status == 0) {
-            $existing->status = 1;
-            $count_republished++;
+        $existing = array_shift($exists);
+        $existing->description = $description;
+        $existing->format = 'plain_text';
+        if (isset($existing->status) && $existing->status == 0) {
+          $existing->status = 1;
+          $count_republished++;
+        }
+        taxonomy_term_save($existing);
+        // Remove this from list of existing term IDs, we're keeping it.
+        unset($existing_term_ids[$existing->tid]);
+        // Delete any duplicate terms.
+        foreach ($exists as $duplicate) {
+          try {
+            taxonomy_term_delete($duplicate->tid);
           }
-          taxonomy_term_save($existing);
-          // Remove this from list of existing term IDs, we're keeping it.
-          unset($existing_term_ids[$existing->tid]);
+          catch (Exception $e) {
+            // Already logged to watchdog by the taxonomy module.
+          }
         }
       }
       else {
@@ -250,6 +268,8 @@ function _care_taxonomy_process_terms($vid, $vocabulary_machine_name, $care_resu
 
 /**
  * Implements hook_views_api().
+ *
+ * @inheritDoc
  */
 function care_taxonomy_views_api() {
   return [

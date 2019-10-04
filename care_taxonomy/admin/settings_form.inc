@@ -57,13 +57,17 @@ function care_taxonomy_admin_settings_form($form, &$form_state) {
     '#title' => t('Enabled Activity Types'),
   ];
 
-  $data = [];
-  $typedata = ['pLookupDataType' => 'xldtActivities'];
-  $activities = care_call_method('GetLookupData', $data, $typedata);
-  $activity_options = [];
-  foreach ($activities as $activity) {
-    $activity_options[(string) $activity->Activity] = (string) $activity->Activity . ' (' . (string) $activity->ActivityDesc . ')';
+  if (!isset($form_state['storage']['activity_options'])) {
+    $data = [];
+    $typedata = ['pLookupDataType' => 'xldtActivities'];
+    $activities = care_call_method('GetLookupData', $data, $typedata);
+    foreach ($activities as $activity) {
+      $form_state['storage']['activity_options'][(string) $activity->Activity] = (string) $activity->ActivityDesc . ' (' . (string) $activity->Activity . ')';
+      $form_state['storage']['activity_descriptions'][(string) $activity->Activity] = (string) $activity->ActivityDesc;
+    }
   }
+  $activity_options = $form_state['storage']['activity_options'];
+  $activity_descriptions = $form_state['storage']['activity_descriptions'];
 
   $activity_type_codes = variable_get('care_taxonomy_activities', []);
   $form['activity_imports']['activity_types']['care_taxonomy_activities'] = [
@@ -76,16 +80,14 @@ function care_taxonomy_admin_settings_form($form, &$form_state) {
   foreach ($activity_type_codes as $code) {
     $form['activity_imports'][$code] = [
       '#type' => 'submit',
-      '#value' => $activity_options[$code],
+      '#value' => $activity_descriptions[$code],
+      '#activity_code' => $code,
+      '#activity_description' => $activity_descriptions[$code],
       '#submit' => [
         'care_taxonomy_admin_activity_import',
       ],
     ];
   }
-
-  $data = ['Activity' => 'MT'];
-  $typedata = ['pLookupDataType' => 'xldtActivityValues'];
-  $activity_types = care_call_method('GetLookupData', $data, $typedata);
 
   $form['links'] = [
     '#type' => 'fieldset',
@@ -94,12 +96,13 @@ function care_taxonomy_admin_settings_form($form, &$form_state) {
 
   $taxonomy_query = new EntityFieldQuery();
   $vocabularies = $taxonomy_query->entityCondition('entity_type', 'taxonomy_vocabulary')
-    ->propertyCondition('machine_name','care_taxonomy_','STARTS_WITH')
+    ->propertyCondition('machine_name', 'care_taxonomy_', 'STARTS_WITH')
+    ->propertyOrderBy('name')
     ->execute();
   foreach ($vocabularies['taxonomy_vocabulary'] as $vocabulary) {
     $vocab = taxonomy_vocabulary_load($vocabulary->vid);
-    $vocab_link = l($vocab->name, 'admin/structure/taxonomy/' . $vocab->machine_name .'/care_codes');
-    $edit_link = l(t('Edit'), 'admin/structure/taxonomy/' . $vocab->machine_name .'/edit');
+    $vocab_link = l($vocab->name, 'admin/structure/taxonomy/' . $vocab->machine_name . '/care_codes');
+    $edit_link = l(t('Edit'), 'admin/structure/taxonomy/' . $vocab->machine_name . '/edit');
     $links[] = "$vocab_link [$edit_link]";
   }
 
@@ -153,8 +156,11 @@ function care_taxonomy_admin_mailing_suppression_code_import() {
 
 /**
  * Import activity values button callback.
+ *
+ * @noinspection PhpUnused
  */
 function care_taxonomy_admin_activity_import($form, $form_state) {
-  $activity_code = strtok($form_state['clicked_button']['#value'], ' ');
-  care_taxonomy_import_activity_values($activity_code);
+  $activity_code = $form_state['clicked_button']['#activity_code'];
+  $activity_description = $form_state['clicked_button']['#activity_description'];
+  care_taxonomy_import_activity_values($activity_code, $activity_description);
 }

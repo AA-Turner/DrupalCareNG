@@ -2,6 +2,8 @@
 
 /**
  * Implements hook_rules_action_info().
+ *
+ * @noinspection PhpUnused
  */
 function care_taxonomy_rules_action_info() {
   $actions = [];
