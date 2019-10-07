@@ -38,36 +38,6 @@ function care_taxonomy_menu() {
 }
 
 /**
- * Implements hook_cron().
- */
-function care_taxonomy_cron() {
-  $now = new DateTime();
-  if ($now->format('H') >= '03') {
-    try {
-      $last_import = new DateTime(variable_get('care_taxonomy_last_import', '1900-01-01T00:00:00'));
-    }
-    catch (Exception $e) {
-      watchdog_exception('care_taxonomy', $e);
-      return;
-    }
-    $interval = $last_import->diff($now);
-    $total_days = (int) $interval->format('%a');
-    $hours = (int) $interval->format('%h');
-    if ($total_days > 0 || $hours > 20) {
-      //care_taxonomy_import_source_codes();
-      care_taxonomy_import_promotion_codes();
-      //care_taxonomy_import_membership_codes();
-      //care_taxonomy_import_mailing_suppression_codes();
-      $activity_codes = variable_get('care_taxonomy_activities', []);
-      foreach ($activity_codes as $code) {
-        care_taxonomy_import_activity_values($code);
-      }
-      variable_set('care_taxonomy_last_import', $now->format('c'));
-    }
-  }
-}
-
-/**
  * Callback to import Source codes from CARE.
  */
 function care_taxonomy_import_source_codes() {
@@ -75,43 +45,46 @@ function care_taxonomy_import_source_codes() {
   $care_type = 'xldtSources';
   $care_code_field = 'Source';
   $care_description_field = 'SourceDesc';
-  return _care_taxonomy_import_codes($vocabulary, $care_type, $care_code_field, $care_description_field);
+  _care_taxonomy_import_codes($vocabulary, $care_type, $care_code_field, $care_description_field);
 }
 
 /**
  * Callback to import Promotion codes from CARE.
  */
 function care_taxonomy_import_promotion_codes() {
-  return _care_taxonomy_import_codes('care_taxonomy_promotion_code', 'xldtSources', 'Source', 'SourceDesc');
+  _care_taxonomy_import_codes('care_taxonomy_promotion_code', 'xldtSources', 'Source', 'SourceDesc');
 }
 
 /**
  * Import Membership codes from CARE.
  */
 function care_taxonomy_import_membership_codes() {
-  return _care_taxonomy_import_codes('care_taxonomy_membership_code', 'xldtMembershipTypes', 'MembershipType', 'MembershipTypeDesc');
+  _care_taxonomy_import_codes('care_taxonomy_membership_code', 'xldtMembershipTypes', 'MembershipType', 'MembershipTypeDesc');
 }
 
 /**
  * Import Mailing suppression codes from CARE.
  */
 function care_taxonomy_import_mailing_suppression_codes() {
-  return _care_taxonomy_import_codes('care_taxonomy_mailing_suppression_code', 'xldtSuppressions', 'MailingSuppression', 'MailingSuppressionDesc');
+  _care_taxonomy_import_codes('care_taxonomy_mailing_suppression_code', 'xldtSuppressions', 'MailingSuppression', 'MailingSuppressionDesc');
 }
 
 /**
  * Import  Activity codes from CARE.
  */
 function care_taxonomy_import_activity_codes() {
-  return _care_taxonomy_import_codes('care_taxonomy_activity_code', 'xldtSuppressions', 'MailingSuppression', 'MailingSuppressionDesc');
+  _care_taxonomy_import_codes('care_taxonomy_activity_code', 'xldtSuppressions', 'MailingSuppression', 'MailingSuppressionDesc');
 }
 
 /**
  * Import  Activity codes from CARE.
+ *
+ * @param $activity_code
+ * @param $activity_description
  */
 function care_taxonomy_import_activity_values($activity_code, $activity_description) {
   $name = "CARE Activity: $activity_description";
-  $machine_name = "care_taxonomy_activity_" . strtolower($activity_code);
+  $machine_name = 'care_taxonomy_activity_' . strtolower($activity_code);
   $existing_vocabulary = taxonomy_vocabulary_machine_name_load($machine_name);
   if ($existing_vocabulary) {
     $vid = $existing_vocabulary->vid;
@@ -126,17 +99,21 @@ function care_taxonomy_import_activity_values($activity_code, $activity_descript
     $vid = $new_vocab->vid;
   }
   $data = ['Activity' => $activity_code];
-  $typedata = ['pLookupDataType' => 'xldtActivityValues'];
-  $result = care_call_method('GetLookupData', $data, $typedata);
+  $type_data = ['pLookupDataType' => 'xldtActivityValues'];
+  $result = care_call_method('GetLookupData', $data, $type_data);
   _care_taxonomy_process_terms($vid, $machine_name, $result, 'ActivityValue', 'ActivityValueDesc');
 }
 
 /**
  * Import codes from CARE.
+ *
+ * @param $vocabulary
+ * @param $care_type
+ * @param $care_code_field
+ * @param $care_description_field
  */
 function _care_taxonomy_import_codes($vocabulary, $care_type, $care_code_field, $care_description_field) {
-  $name = str_replace('_', ' ', $vocabulary);
-  $name = str_replace('care taxonomy', 'CARE', $name);
+  $name = str_replace(['_', 'care taxonomy'], [' ', 'CARE'], $vocabulary);
   $existing_vocabulary = taxonomy_vocabulary_machine_name_load($vocabulary);
   if ($existing_vocabulary) {
     $vid = $existing_vocabulary->vid;
@@ -153,18 +130,24 @@ function _care_taxonomy_import_codes($vocabulary, $care_type, $care_code_field, 
   $data = [
     'Active' => 'Y',
   ];
-  if ($vocabulary == 'care_taxonomy_source_code') {
+  if ($vocabulary === 'care_taxonomy_source_code') {
     $data['LookupGroup'] = 'WEB';
   }
-  $typedata = [
+  $type_data = [
     'pLookupDataType' => $care_type,
   ];
-  $result = care_call_method('GetLookupData', $data, $typedata);
+  $result = care_call_method('GetLookupData', $data, $type_data);
   _care_taxonomy_process_terms($vid, $vocabulary, $result, $care_code_field, $care_description_field);
 }
 
 /**
  * Create/update/unpublish taxonomy terms.
+ *
+ * @param $vid
+ * @param $vocabulary_machine_name
+ * @param $care_result
+ * @param $care_code_field
+ * @param $care_description_field
  */
 function _care_taxonomy_process_terms($vid, $vocabulary_machine_name, $care_result, $care_code_field, $care_description_field) {
   $count_all = 0;
@@ -185,7 +168,7 @@ function _care_taxonomy_process_terms($vid, $vocabulary_machine_name, $care_resu
   $existing_term_ids = $existing_result ? $existing_result['taxonomy_term'] : [];
   foreach ($care_result as $row) {
     $historic = (string) $row->IsHistoric;
-    if ($historic == 'N' or !$historic) {
+    if ($historic === 'N' || !$historic) {
       $code = (string) $row->$care_code_field;
       $description = (string) $row->$care_description_field;
       $exists = taxonomy_get_term_by_name($code, $vocabulary_machine_name);
@@ -193,7 +176,7 @@ function _care_taxonomy_process_terms($vid, $vocabulary_machine_name, $care_resu
         $existing = array_shift($exists);
         $existing->description = $description;
         $existing->format = 'plain_text';
-        if (isset($existing->status) && $existing->status == 0) {
+        if (isset($existing->status) && $existing->status === 0) {
           $existing->status = 1;
           $count_republished++;
         }
@@ -211,12 +194,12 @@ function _care_taxonomy_process_terms($vid, $vocabulary_machine_name, $care_resu
         }
       }
       else {
-        $newterm = new stdClass();
-        $newterm->name = $code;
-        $newterm->vid = $vid;
-        $newterm->description = $description;
-        $newterm->format = 'plain_text';
-        taxonomy_term_save($newterm);
+        $new_term = new stdClass();
+        $new_term->name = $code;
+        $new_term->vid = $vid;
+        $new_term->description = $description;
+        $new_term->format = 'plain_text';
+        taxonomy_term_save($new_term);
         $count_added++;
       }
       $count_all++;
@@ -257,7 +240,7 @@ function _care_taxonomy_process_terms($vid, $vocabulary_machine_name, $care_resu
     drupal_set_message(t('Imported !i new codes into %vocabulary, !n codes read from CARE.', $message_args));
     watchdog('care_taxonomy', 'Imported !i new codes into %vocabulary, !n codes read from CARE.', $message_args);
   }
-  if (($count_unpublished + $count_added + $count_republished) == 0) {
+  if (($count_unpublished + $count_added + $count_republished) === 0) {
     $message_args = [
       '!n' => $count_all,
       '%vocabulary' => $vocabulary_machine_name,

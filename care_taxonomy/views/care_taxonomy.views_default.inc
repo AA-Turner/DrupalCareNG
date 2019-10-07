@@ -102,6 +102,11 @@ function care_taxonomy_views_default_views() {
   $handler->display->display_options['fields']['edit_term']['field'] = 'edit_term';
   $handler->display->display_options['fields']['edit_term']['label'] = 'Edit';
   $handler->display->display_options['fields']['edit_term']['text'] = 'Edit';
+  /* Field: Taxonomy term: Published */
+  $handler->display->display_options['fields']['status']['id'] = 'status';
+  $handler->display->display_options['fields']['status']['table'] = 'termstatus';
+  $handler->display->display_options['fields']['status']['field'] = 'status';
+  $handler->display->display_options['fields']['status']['not'] = 0;
   /* Contextual filter: Taxonomy vocabulary: Machine name */
   $handler->display->display_options['arguments']['machine_name']['id'] = 'machine_name';
   $handler->display->display_options['arguments']['machine_name']['table'] = 'taxonomy_vocabulary';
@@ -112,50 +117,41 @@ function care_taxonomy_views_default_views() {
   $handler->display->display_options['arguments']['machine_name']['summary']['format'] = 'default_summary';
   $handler->display->display_options['arguments']['machine_name']['summary_options']['items_per_page'] = '25';
   $handler->display->display_options['arguments']['machine_name']['limit'] = '0';
-  /* Filter criterion: Taxonomy vocabulary: Machine name */
-  $handler->display->display_options['filters']['machine_name']['id'] = 'machine_name';
-  $handler->display->display_options['filters']['machine_name']['table'] = 'taxonomy_vocabulary';
-  $handler->display->display_options['filters']['machine_name']['field'] = 'machine_name';
-  $handler->display->display_options['filters']['machine_name']['value'] = [
-    'care_taxonomy_mailing_suppression_code' => 'care_taxonomy_mailing_suppression_code',
-    'care_taxonomy_membership_code' => 'care_taxonomy_membership_code',
-    'care_taxonomy_promotion_code' => 'care_taxonomy_promotion_code',
-    'care_taxonomy_source_code' => 'care_taxonomy_source_code',
+  /* Filter criterion: Taxonomy term: Published */
+  $handler->display->display_options['filters']['status']['id'] = 'status';
+  $handler->display->display_options['filters']['status']['table'] = 'termstatus';
+  $handler->display->display_options['filters']['status']['field'] = 'status';
+  $handler->display->display_options['filters']['status']['value'] = '1';
+  $handler->display->display_options['filters']['status']['group'] = 1;
+  $handler->display->display_options['filters']['status']['exposed'] = TRUE;
+  $handler->display->display_options['filters']['status']['expose']['operator_id'] = '';
+  $handler->display->display_options['filters']['status']['expose']['label'] = 'Published';
+  $handler->display->display_options['filters']['status']['expose']['operator'] = 'status_op';
+  $handler->display->display_options['filters']['status']['expose']['identifier'] = 'status';
+  $handler->display->display_options['filters']['status']['expose']['remember'] = TRUE;
+  $handler->display->display_options['filters']['status']['expose']['remember_roles'] = [
+    2 => '2',
+    1 => 0,
+    201 => 0,
+    236 => 0,
+    256 => 0,
+    266 => 0,
+    216 => 0,
+    196 => 0,
+    261 => 0,
+    241 => 0,
+    251 => 0,
+    246 => 0,
+    11 => 0,
+    271 => 0,
   ];
-  if (module_exists('termstatus')) {
-    /* Field: Taxonomy term: Published */
-    $handler->display->display_options['fields']['status']['id'] = 'status';
-    $handler->display->display_options['fields']['status']['table'] = 'termstatus';
-    $handler->display->display_options['fields']['status']['field'] = 'status';
-    $handler->display->display_options['fields']['status']['not'] = 0;
-    /* Filter criterion: Taxonomy term: Published */
-    $handler->display->display_options['filters']['status']['id'] = 'status';
-    $handler->display->display_options['filters']['status']['table'] = 'termstatus';
-    $handler->display->display_options['filters']['status']['field'] = 'status';
-    $handler->display->display_options['filters']['status']['value'] = '1';
-    $handler->display->display_options['filters']['status']['exposed'] = TRUE;
-    $handler->display->display_options['filters']['status']['expose']['operator_id'] = '';
-    $handler->display->display_options['filters']['status']['expose']['label'] = 'Published';
-    $handler->display->display_options['filters']['status']['expose']['operator'] = 'status_op';
-    $handler->display->display_options['filters']['status']['expose']['identifier'] = 'status';
-    $handler->display->display_options['filters']['status']['expose']['remember'] = TRUE;
-    $handler->display->display_options['filters']['status']['expose']['remember_roles'] = [
-      2 => '2',
-      1 => 0,
-      201 => 0,
-      236 => 0,
-      256 => 0,
-      266 => 0,
-      216 => 0,
-      196 => 0,
-      261 => 0,
-      241 => 0,
-      251 => 0,
-      246 => 0,
-      11 => 0,
-      271 => 0,
-    ];
-  }
+  /* Filter criterion: Taxonomy vocabulary: Machine name as string */
+  $handler->display->display_options['filters']['machine_name_string']['id'] = 'machine_name_string';
+  $handler->display->display_options['filters']['machine_name_string']['table'] = 'taxonomy_vocabulary';
+  $handler->display->display_options['filters']['machine_name_string']['field'] = 'machine_name_string';
+  $handler->display->display_options['filters']['machine_name_string']['operator'] = 'starts';
+  $handler->display->display_options['filters']['machine_name_string']['value'] = 'care_taxonomy_';
+  $handler->display->display_options['filters']['machine_name_string']['group'] = 1;
 
   /* Display: Page */
   $handler = $view->new_display('page', 'Page', 'page');
