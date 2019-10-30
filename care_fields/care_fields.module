@@ -87,6 +87,7 @@ function care_fields_field_info() {
       'default_formatter' => 'care_name_formatter',
       'instance_settings' => [
         'input_options' => [
+          'title_optional' => TRUE,
           'default_from_current_user' => FALSE,
           'readonly_if_known' => FALSE,
         ],

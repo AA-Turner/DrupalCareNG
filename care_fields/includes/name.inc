@@ -15,6 +15,11 @@ function _care_fields_name_instance_settings_form($settings) {
     '#type' => 'fieldset',
     '#tree' => TRUE,
   ];
+  $form['input_options']['title_optional'] = [
+    '#title' => t('Make the Title field optional.'),
+    '#type' => 'checkbox',
+    '#default_value' => $settings['input_options']['title_optional'],
+  ];
   $form['input_options']['default_from_current_user'] = [
     '#title' => t('Get default value(s) from the current user, if possible.'),
     '#type' => 'checkbox',
@@ -97,7 +102,7 @@ function _care_fields_name_form(&$element, $form_state, $field, $instance, $item
     '#title' => t('Title'),
     '#disabled' => $disabled,
     '#default_value' => $title_default,
-    '#required' => $element['#required'],
+    '#required' => ($element['#required'] && !$input_options['title_optional']),
     '#options' => $title_options,
   ];
   $element['forenames'] = [
