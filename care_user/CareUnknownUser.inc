@@ -177,8 +177,7 @@ class CareUnknownUser extends CareUser {
         // Match title, with some flexibility.
         if ($data['Title'] && isset($this->nameField->title) && $this->nameField->title->value()) {
           $our_title = $this->nameField->title->value();
-
-          if ($data['Title'] == $our_title) {
+          if ($data['Title'] == $our_title || trim($our_title) == '') {
             $matches[$index]['Matches'][] = 'Title';
           }
           elseif (in_array($data['Title'], $this->female_titles) && in_array($our_title, $this->female_titles)) {

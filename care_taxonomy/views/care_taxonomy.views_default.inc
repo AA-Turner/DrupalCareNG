@@ -2,6 +2,8 @@
 
 /**
  * Implements hook_views_default_views().
+ *
+ * @noinspection PhpUnused
  */
 function care_taxonomy_views_default_views() {
   $view = new view();
@@ -130,19 +132,19 @@ function care_taxonomy_views_default_views() {
   $handler->display->display_options['filters']['status']['expose']['identifier'] = 'status';
   $handler->display->display_options['filters']['status']['expose']['remember'] = TRUE;
   $handler->display->display_options['filters']['status']['expose']['remember_roles'] = [
-    2 => '2',
     1 => 0,
-    201 => 0,
-    236 => 0,
-    256 => 0,
-    266 => 0,
-    216 => 0,
-    196 => 0,
-    261 => 0,
-    241 => 0,
-    251 => 0,
-    246 => 0,
+    2 => '2',
     11 => 0,
+    196 => 0,
+    201 => 0,
+    216 => 0,
+    236 => 0,
+    241 => 0,
+    246 => 0,
+    251 => 0,
+    256 => 0,
+    261 => 0,
+    266 => 0,
     271 => 0,
   ];
   /* Filter criterion: Taxonomy vocabulary: Machine name as string */

@@ -2,6 +2,8 @@
 
 /**
  * Implements hook_views_data().
+ *
+ * @noinspection PhpUnused
  */
 function care_taxonomy_views_data() {
     $data['taxonomy_vocabulary']['machine_name_string'] = [

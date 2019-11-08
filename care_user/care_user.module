@@ -27,6 +27,8 @@ function care_user_permission() {
  * Implements hook_field_storage_pre_update().
  *
  * Prevent field data being saved for UID=0.
+ *
+ * @inheritDoc
  */
 function care_user_field_storage_pre_update($entity_type, $entity, &$skip_fields) {
   if ($entity_type == 'user' && $entity->uid == 0) {
@@ -72,6 +74,8 @@ function care_user_menu() {
 
 /**
  * Implements hook_care_fields_membership_display_alter().
+ *
+ * @inheritDoc
  */
 function care_user_care_fields_membership_display_alter(&$markup, &$item, &$contact_number) {
   if ($contact_number) {
@@ -91,7 +95,7 @@ function care_user_new_card_form($form, &$form_state, $membership_number) {
   $form['button'] = [
     '#type' => 'submit',
     '#value' => t('Request new membership card'),
-    '#attributes' => array('class' => array('btn-margin')),
+    '#attributes' => ['class' => ['btn-margin']],
   ];
   return $form;
 }
