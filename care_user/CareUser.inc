@@ -151,6 +151,41 @@ class CareUser {
   }
 
   /**
+   * Add a telephone number, if it is new, avoiding duplicates.
+   */
+  public function addTelephoneFromField($care_telephone_field) {
+    if ($care_telephone_field && $care_telephone_field->value()) {
+      $field_info = field_info_field(variable_get('care_user_telephone_field', ''));
+      $multiple_value_field = ($field_info['cardinality'] != 1);
+      $supplied_telephone_number = $care_telephone_field->telephone->value();
+      if ($multiple_value_field) {
+        $telephones = $this->telephoneField->value();
+        // Do nothing if this telephone number already exists.
+        foreach ($telephones as $telephone) {
+          $existing_telephone_number = $telephone['telephone'];
+          if ($existing_telephone_number == $supplied_telephone_number) {
+            return;
+          }
+        }
+        // Add new telephone number.
+        $this->telephoneField[] = $care_telephone_field->value();
+      }
+      else {
+        $existing_telephone_number = $this->telephoneField->telephone->value();
+        // Do nothing if this telephone number already exists.
+        if ($existing_telephone_number == $supplied_telephone_number) {
+          return;
+        }
+        // Change telephone number to new one.
+        $this->telephoneField = $care_telephone_field->value();
+        $this->telephoneField->communication_number = 0;
+        $this->telephoneField->local_unsent_changes = CARE_FIELDS_CHANGED;
+      }
+      $this->saveFieldsToDrupal();
+    }
+  }
+
+  /**
    * Add a possibly-new string-only email address.
    */
   public function addEmail($supplied_email_address) {
