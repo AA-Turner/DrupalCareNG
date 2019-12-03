@@ -59,10 +59,12 @@ function care_fields_menu() {
  * Implements hook_field_presave().
  *
  * @noinspection PhpUnused
+ * @noinspection PhpUnusedParameterInspection
+ *
  * @inheritDoc
  */
-function care_fields_field_presave(/** @noinspection PhpUnusedParameterInspection */ $entity_type, $entity, $field, $instance, $langcode, &$items) {
-  if ($instance['widget']['type'] === 'care_address_select_widget') {
+function care_fields_field_presave($entity_type, $entity, $field, $instance, $langcode, &$items) {
+  if ($instance['widget']['type'] == 'care_address_select_widget') {
     foreach ($items as $delta => $item) {
       if ($item['address_index'] >= 0 && isset($item['address_data'])) {
         foreach ($item['address_data'][$item['address_index']] as $key => $value) {
@@ -213,20 +215,21 @@ function care_fields_field_info() {
 /**
  * Implements hook_field_widget_WIDGET_TYPE_form_alter().
  *
- * @noinspection PhpUnused
- *
  * @inheritDoc
+ *
+ * @noinspection PhpUnused
+ * @noinspection PhpUnusedParameterInspection
  */
-function care_fields_field_widget_care_memberships_widget_form_alter(&$element, /** @noinspection PhpUnusedParameterInspection */ &$form_state, /** @noinspection PhpUnusedParameterInspection
- */ $context) {
+function care_fields_field_widget_care_memberships_widget_form_alter(&$element, &$form_state, $context) {
   $element['#care_memberships_field'] = TRUE;
 }
 
 /**
  * Implements hook_theme_registry_alter().
  *
- * @noinspection PhpUnused
  * @inheritDoc
+ *
+ * @noinspection PhpUnused
  */
 function care_fields_theme_registry_alter(&$theme_registry) {
   if (isset($theme_registry['field_multiple_value_form'])) {
@@ -240,14 +243,13 @@ function care_fields_theme_registry_alter(&$theme_registry) {
  * Returns HTML for an individual form element, modified for memberships field.
  *
  * Combine multiple values into a table with drag-n-drop reordering.
- * TODO : convert to a template?
- *
- * @noinspection PhpUnused
  *
  * @param $variables
  *
  * @return string
  * @see theme_field_multiple_value_form()
+
+ * @noinspection PhpUnused
  */
 function care_fields_field_multiple_value_form($variables) {
   $element = $variables['element'];
@@ -255,7 +257,7 @@ function care_fields_field_multiple_value_form($variables) {
 
   $care_memberships_field = isset($element[0]['#care_memberships_field']) && $element[0]['#care_memberships_field'];
 
-  if ($element['#cardinality'] > 1 || $element['#cardinality'] === FIELD_CARDINALITY_UNLIMITED) {
+  if ($element['#cardinality'] > 1 || $element['#cardinality'] == FIELD_CARDINALITY_UNLIMITED) {
     $table_id = drupal_html_id($element['#field_name'] . '_values');
     $order_class = $element['#field_name'] . '-delta-order';
     try {
@@ -296,7 +298,7 @@ function care_fields_field_multiple_value_form($variables) {
     // preview or failed validation)
     $items = [];
     foreach (element_children($element) as $key) {
-      if ($key === 'add_more') {
+      if ($key == 'add_more') {
         $add_more_button = &$element[$key];
       }
       else {
@@ -368,12 +370,12 @@ function care_fields_field_multiple_value_form($variables) {
  *
  * For field_ui_field_edit_form.
  *
- * @noinspection PhpUnused
- *
  * @inheritDoc
+ *
+ * @noinspection PhpUnused
+ * @noinspection PhpUnusedParameterInspection
  */
-function care_fields_form_field_ui_field_edit_form_alter(&$form, /** @noinspection PhpUnusedParameterInspection */ &$form_state, /** @noinspection PhpUnusedParameterInspection
- */ $form_id) {
+function care_fields_form_field_ui_field_edit_form_alter(&$form, &$form_state, $form_id) {
   if (in_array($form['#field']['type'], [
     'care_address',
     'care_telephone',
@@ -389,7 +391,7 @@ function care_fields_form_field_ui_field_edit_form_alter(&$form, /** @noinspecti
       $form['field']['cardinality']['#default_value'] = 1;
     }
   }
-  if ($form['#field']['type'] === 'care_activity') {
+  if ($form['#field']['type'] == 'care_activity') {
     $form['field']['cardinality']['#default_value'] = FIELD_CARDINALITY_UNLIMITED;
   }
 }
@@ -397,8 +399,9 @@ function care_fields_form_field_ui_field_edit_form_alter(&$form, /** @noinspecti
 /**
  * Implements hook_field_instance_settings_form().
  *
- * @noinspection PhpUnused
  * @inheritDoc
+ *
+ * @noinspection PhpUnused
  */
 function care_fields_field_instance_settings_form($field, $instance) {
   $settings = $instance['settings'];
@@ -438,8 +441,9 @@ function care_fields_field_instance_settings_form($field, $instance) {
 /**
  * Implements hook_field_widget_info().
  *
- * @noinspection PhpUnused
  * @inheritDoc
+ *
+ * @noinspection PhpUnused
  */
 function care_fields_field_widget_info() {
   $widgets = [];
@@ -531,11 +535,12 @@ function care_fields_field_widget_info() {
 /**
  * Implements hook_field_widget_form().
  *
- * @noinspection PhpUnused
  * @inheritDoc
+ *
+ * @noinspection PhpUnused
+ * @noinspection PhpUnusedParameterInspection
  */
-function care_fields_field_widget_form(/** @noinspection PhpUnusedParameterInspection
- */ &$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
+function care_fields_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
   $function = str_replace(['care_', '_widget'], [
     '_care_fields_',
     '_form',
@@ -560,8 +565,9 @@ function care_fields_field_is_empty($item, $field) {
 /**
  * Implements hook_field_formatter_info().
  *
- * @noinspection PhpUnused
  * @inheritDoc
+ *
+ * @noinspection PhpUnused
  */
 function care_fields_field_formatter_info() {
   return [
@@ -648,10 +654,12 @@ function care_fields_field_formatter_info() {
 /**
  * Implements hook_field_formatter_view().
  *
- * @noinspection PhpUnused
  * @inheritDoc
+ *
+ * @noinspection PhpUnused
+ * @noinspection PhpUnusedParameterInspection
  */
-function care_fields_field_formatter_view(/** @noinspection PhpUnusedParameterInspection */ $entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+function care_fields_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
   $element = [];
   foreach ($items as $delta => $item) {
     switch ($field['type']) {
@@ -729,7 +737,7 @@ function care_fields_field_formatter_view(/** @noinspection PhpUnusedParameterIn
         if ($item['postcode']) {
           $lines[] = check_plain($item['postcode']);
         }
-        if ($display['type'] === 'care_address_formatter') {
+        if ($display['type'] == 'care_address_formatter') {
           $element[$delta]['#markup'] = implode('<br>', $lines);
         }
         else {
@@ -756,15 +764,15 @@ function care_fields_field_formatter_view(/** @noinspection PhpUnusedParameterIn
         break;
 
       case 'care_field_changed_formatter':
-        if ($item['local_unsent_changes'] === CARE_FIELDS_CHANGED) {
-          if ($item_number === 0) {
+        if ($item['local_unsent_changes'] == CARE_FIELDS_CHANGED) {
+          if ($item_number == 0) {
             $element[$delta]['#markup'] = 'New';
           }
           else {
             $element[$delta]['#markup'] = 'Changed';
           }
         }
-        elseif ($item['local_unsent_changes'] === CARE_FIELDS_DELETED) {
+        elseif ($item['local_unsent_changes'] == CARE_FIELDS_DELETED) {
           $element[$delta]['#markup'] = 'Deleted';
         }
         else {
@@ -785,10 +793,10 @@ function care_fields_field_formatter_view(/** @noinspection PhpUnusedParameterIn
 /**
  * Implements hook_field_schema().
  *
+ * @inheritDoc
+ *
  * @noinspection PhpUnused
  * @noinspection PhpDocSignatureInspection
- *
- * @inheritDoc
  */
 function care_fields_field_schema($field) {
   $schema_function = '_care_fields_' . $field['type'] . '_schema';
